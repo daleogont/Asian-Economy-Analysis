@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors    = require("cors");
+const path    = require("path");
 
 const companiesRouter    = require("./routes/companies");
 const sectorsRouter      = require("./routes/sectors");
@@ -29,7 +30,14 @@ app.use("/api/sector-leaders",   sectorLeadersRouter);
 app.use("/api/market-overview",  marketOverviewRouter);
 app.use("/api/health",           healthRouter);
 
-app.get("/", (req, res) => res.send("Asian Economy Analysis API is running."));
+// Serve React build in production
+if (process.env.NODE_ENV === "production") {
+  const build = path.join(__dirname, "../client/build");
+  app.use(express.static(build));
+  app.get("*", (req, res) => res.sendFile(path.join(build, "index.html")));
+} else {
+  app.get("/", (req, res) => res.send("Asian Economy Analysis API is running."));
+}
 
 app.use((err, req, res, next) => {
   console.error("Server error:", err);

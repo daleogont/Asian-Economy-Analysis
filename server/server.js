@@ -34,7 +34,7 @@ app.use("/api/health",           healthRouter);
 if (process.env.NODE_ENV === "production") {
   const build = path.join(__dirname, "../client/build");
   app.use(express.static(build));
-  app.get("*", (req, res) => res.sendFile(path.join(build, "index.html")));
+  app.get(/(.*)/, (req, res) => res.sendFile(path.join(build, "index.html")));
 } else {
   app.get("/", (req, res) => res.send("Asian Economy Analysis API is running."));
 }

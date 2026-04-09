@@ -16,7 +16,7 @@ const currencyToUSD = {
   function convertToUSD(value, currency) {
     const rate = currencyToUSD[currency];
     if (rate == null) {
-      console.warn(`[currencyService] Невідомий курс для валюти "${currency}"`);
+      console.warn(`[currencyService] Unknown currency "${currency}" — returning raw value`);
       return value;
     }
     return value * rate;

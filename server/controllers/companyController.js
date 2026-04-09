@@ -1,13 +1,12 @@
 const path = require("path");
-const fs = require("fs");
-const { fetchCompanyData } = require("../utils/yahooService");
+const fs   = require("fs");
+const { fetchCompanyData } = require("../utils/dataService");
 
 const companiesPath = path.join(__dirname, "../../data/realCompanies.json");
 
 const getCompanies = async (req, res) => {
   try {
-    const rawData = fs.readFileSync(companiesPath, "utf-8");
-    const companies = JSON.parse(rawData);
+    const companies = JSON.parse(fs.readFileSync(companiesPath, "utf-8"));
 
     const results = await Promise.all(
       companies.map(async (company) => {
@@ -16,33 +15,37 @@ const getCompanies = async (req, res) => {
 
           if (
             !data ||
-            typeof data.marketCap !== "number" ||
-            typeof data.stockPrice !== "number" ||
+            typeof data.stockPrice    !== "number" ||
             typeof data.previousClose !== "number"
           ) {
-            console.warn(`⚠️ Недостатньо даних для ${company.ticker}`);
+            console.warn(`⚠️  No data for ${company.ticker}`);
             return null;
           }
 
           const weeklyReturn =
-            ((data.stockPrice - data.previousClose) / data.previousClose) * 100;
+            typeof data.weeklyReturn === "number"
+              ? data.weeklyReturn
+              : ((data.stockPrice - data.previousClose) / data.previousClose) * 100;
 
           return {
-            name: company.name,
-            ticker: company.ticker,
-            country: company.country,
-            sector: company.sector,
-            marketCap: data.marketCap,
-            stockPrice: data.stockPrice,
+            name:         company.name,
+            ticker:       company.ticker,
+            country:      company.country,
+            sector:       company.sector,
+            marketCap:    data.marketCap ?? 0,
+            stockPrice:   data.stockPrice,
             weeklyReturn: Number(weeklyReturn.toFixed(2)),
+            dataSource:   data.source   ?? "cache",
+            isSeed:       data.isSeed   ?? false,
           };
         } catch (err) {
-          console.error(`❌ Помилка при запиті до Yahoo для ${company.ticker}:`, err.message);
+          console.error(`❌ Error fetching ${company.ticker}:`, err.message);
           return null;
         }
       })
     );
 
+    // One representative per country+sector (highest stock price)
     const unique = {};
     results.filter(Boolean).forEach((company) => {
       const key = `${company.country}|${company.sector}`;
@@ -57,9 +60,9 @@ const getCompanies = async (req, res) => {
     });
 
     res.json(sorted);
-  } catch (error) {
-    console.error("🔥 Фатальна помилка в getCompanies:", error.message);
-    res.status(500).json({ error: "Не вдалося отримати дані про компанії" });
+  } catch (err) {
+    console.error("🔥 Fatal error in getCompanies:", err.message);
+    res.status(500).json({ error: "Failed to fetch company data" });
   }
 };
 

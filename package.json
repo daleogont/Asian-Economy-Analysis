@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node scripts/fetchAllToCache.js && nodemon server/server.js  ",
+    "server": "nodemon server/server.js",
     "client": "npm --prefix client start"
   },
   "keywords": [],
@@ -14,12 +14,13 @@
   "dependencies": {
     "axios": "^1.9.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.1",
     "express": "^5.1.0",
     "node-cron": "^4.1.0",
-    "yahoo-finance2": "^2.13.3"
+    "yahoo-finance2": "^2.11.0"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "nodemon": "^3.1.10"
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.14"
   }
 }

@@ -1,0 +1,1466 @@
+{
+  "8306.T": {
+    "ticker": "8306.T",
+    "stockPrice": 8.5288,
+    "previousClose": 8.5117,
+    "weeklyReturn": 0.87,
+    "marketCap": 115000000000,
+    "currency": "JPY"
+  },
+  "8309.T": {
+    "ticker": "8309.T",
+    "stockPrice": 26.3492,
+    "previousClose": 26.2965,
+    "weeklyReturn": 1.23,
+    "marketCap": 12000000000,
+    "currency": "JPY"
+  },
+  "6758.T": {
+    "ticker": "6758.T",
+    "stockPrice": 17.335,
+    "previousClose": 17.3003,
+    "weeklyReturn": 1.23,
+    "marketCap": 110000000000,
+    "currency": "JPY"
+  },
+  "9984.T": {
+    "ticker": "9984.T",
+    "stockPrice": 63.7928,
+    "previousClose": 63.6652,
+    "weeklyReturn": 1.67,
+    "marketCap": 85000000000,
+    "currency": "JPY"
+  },
+  "7203.T": {
+    "ticker": "7203.T",
+    "stockPrice": 24.269,
+    "previousClose": 24.2205,
+    "weeklyReturn": 0.89,
+    "marketCap": 240000000000,
+    "currency": "JPY"
+  },
+  "4063.T": {
+    "ticker": "4063.T",
+    "stockPrice": 32.5898,
+    "previousClose": 32.5246,
+    "weeklyReturn": 0.34,
+    "marketCap": 65000000000,
+    "currency": "JPY"
+  },
+  "9983.T": {
+    "ticker": "9983.T",
+    "stockPrice": 381.37,
+    "previousClose": 380.6073,
+    "weeklyReturn": 0.67,
+    "marketCap": 95000000000,
+    "currency": "JPY"
+  },
+  "6501.T": {
+    "ticker": "6501.T",
+    "stockPrice": 20.802,
+    "previousClose": 20.7604,
+    "weeklyReturn": 1.23,
+    "marketCap": 85000000000,
+    "currency": "JPY"
+  },
+  "7011.T": {
+    "ticker": "7011.T",
+    "stockPrice": 17.335,
+    "previousClose": 17.3003,
+    "weeklyReturn": 0.56,
+    "marketCap": 35000000000,
+    "currency": "JPY"
+  },
+  "4503.T": {
+    "ticker": "4503.T",
+    "stockPrice": 11.0944,
+    "previousClose": 11.0722,
+    "weeklyReturn": 0.56,
+    "marketCap": 30000000000,
+    "currency": "JPY"
+  },
+  "9501.T": {
+    "ticker": "9501.T",
+    "stockPrice": 5.5472,
+    "previousClose": 5.5361,
+    "weeklyReturn": -0.08,
+    "marketCap": 15000000000,
+    "currency": "JPY"
+  },
+  "9503.T": {
+    "ticker": "9503.T",
+    "stockPrice": 16.6416,
+    "previousClose": 16.6083,
+    "weeklyReturn": 0.23,
+    "marketCap": 12000000000,
+    "currency": "JPY"
+  },
+  "9432.T": {
+    "ticker": "9432.T",
+    "stockPrice": 1.1094,
+    "previousClose": 1.1072,
+    "weeklyReturn": 0.34,
+    "marketCap": 70000000000,
+    "currency": "JPY"
+  },
+  "9433.T": {
+    "ticker": "9433.T",
+    "stockPrice": 31.203,
+    "previousClose": 31.1406,
+    "weeklyReturn": -0.18,
+    "marketCap": 55000000000,
+    "currency": "JPY"
+  },
+  "5020.T": {
+    "ticker": "5020.T",
+    "stockPrice": 6.0326,
+    "previousClose": 6.0205,
+    "weeklyReturn": 0.45,
+    "marketCap": 15000000000,
+    "currency": "JPY"
+  },
+  "8801.T": {
+    "ticker": "8801.T",
+    "stockPrice": 10.401,
+    "previousClose": 10.3802,
+    "weeklyReturn": 0.12,
+    "marketCap": 18000000000,
+    "currency": "JPY"
+  },
+  "8830.T": {
+    "ticker": "8830.T",
+    "stockPrice": 27.0426,
+    "previousClose": 26.9885,
+    "weeklyReturn": -0.23,
+    "marketCap": 12000000000,
+    "currency": "JPY"
+  },
+  "1605.T": {
+    "ticker": "1605.T",
+    "stockPrice": 18.7218,
+    "previousClose": 18.6844,
+    "weeklyReturn": -0.12,
+    "marketCap": 18000000000,
+    "currency": "JPY"
+  },
+  "4502.T": {
+    "ticker": "4502.T",
+    "stockPrice": 30.5096,
+    "previousClose": 30.4486,
+    "weeklyReturn": 0.83,
+    "marketCap": 45000000000,
+    "currency": "JPY"
+  },
+  "4005.T": {
+    "ticker": "4005.T",
+    "stockPrice": 2.9123,
+    "previousClose": 2.9065,
+    "weeklyReturn": -0.56,
+    "marketCap": 5000000000,
+    "currency": "JPY"
+  },
+  "0700.HK": {
+    "ticker": "0700.HK",
+    "stockPrice": 47.3928,
+    "previousClose": 47.298,
+    "weeklyReturn": 1.45,
+    "marketCap": 430000000000,
+    "currency": "HKD"
+  },
+  "9988.HK": {
+    "ticker": "9988.HK",
+    "stockPrice": 10.3831,
+    "previousClose": 10.3623,
+    "weeklyReturn": 1.89,
+    "marketCap": 225000000000,
+    "currency": "HKD"
+  },
+  "9618.HK": {
+    "ticker": "9618.HK",
+    "stockPrice": 5.096,
+    "previousClose": 5.0858,
+    "weeklyReturn": 0.78,
+    "marketCap": 35000000000,
+    "currency": "HKD"
+  },
+  "0941.HK": {
+    "ticker": "0941.HK",
+    "stockPrice": 10.1283,
+    "previousClose": 10.108,
+    "weeklyReturn": 0.56,
+    "marketCap": 185000000000,
+    "currency": "HKD"
+  },
+  "0883.HK": {
+    "ticker": "0883.HK",
+    "stockPrice": 2.8028,
+    "previousClose": 2.7972,
+    "weeklyReturn": 0.67,
+    "marketCap": 65000000000,
+    "currency": "HKD"
+  },
+  "0939.HK": {
+    "ticker": "0939.HK",
+    "stockPrice": 1.2918,
+    "previousClose": 1.2892,
+    "weeklyReturn": 0.56,
+    "marketCap": 145000000000,
+    "currency": "HKD"
+  },
+  "3988.HK": {
+    "ticker": "3988.HK",
+    "stockPrice": 0.5529,
+    "previousClose": 0.5518,
+    "weeklyReturn": 1.45,
+    "marketCap": 95000000000,
+    "currency": "HKD"
+  },
+  "0857.HK": {
+    "ticker": "0857.HK",
+    "stockPrice": 1.1721,
+    "previousClose": 1.1698,
+    "weeklyReturn": 0.23,
+    "marketCap": 175000000000,
+    "currency": "HKD"
+  },
+  "1088.HK": {
+    "ticker": "1088.HK",
+    "stockPrice": 5.6056,
+    "previousClose": 5.5944,
+    "weeklyReturn": -0.34,
+    "marketCap": 70000000000,
+    "currency": "HKD"
+  },
+  "0867.HK": {
+    "ticker": "0867.HK",
+    "stockPrice": 0.5096,
+    "previousClose": 0.5086,
+    "weeklyReturn": 0.34,
+    "marketCap": 3500000000,
+    "currency": "HKD"
+  },
+  "1099.HK": {
+    "ticker": "1099.HK",
+    "stockPrice": 2.8155,
+    "previousClose": 2.8099,
+    "weeklyReturn": 0.72,
+    "marketCap": 14000000000,
+    "currency": "HKD"
+  },
+  "3690.HK": {
+    "ticker": "3690.HK",
+    "stockPrice": 19.2629,
+    "previousClose": 19.2244,
+    "weeklyReturn": 1.34,
+    "marketCap": 110000000000,
+    "currency": "HKD"
+  },
+  "0728.HK": {
+    "ticker": "0728.HK",
+    "stockPrice": 1.1721,
+    "previousClose": 1.1698,
+    "weeklyReturn": 0.23,
+    "marketCap": 85000000000,
+    "currency": "HKD"
+  },
+  "1766.HK": {
+    "ticker": "1766.HK",
+    "stockPrice": 1.3097,
+    "previousClose": 1.3071,
+    "weeklyReturn": 1.45,
+    "marketCap": 18000000000,
+    "currency": "HKD"
+  },
+  "1816.HK": {
+    "ticker": "1816.HK",
+    "stockPrice": 0.3822,
+    "previousClose": 0.3814,
+    "weeklyReturn": -0.17,
+    "marketCap": 12000000000,
+    "currency": "HKD"
+  },
+  "0914.HK": {
+    "ticker": "0914.HK",
+    "stockPrice": 2.4843,
+    "previousClose": 2.4793,
+    "weeklyReturn": 0.78,
+    "marketCap": 19000000000,
+    "currency": "HKD"
+  },
+  "0688.HK": {
+    "ticker": "0688.HK",
+    "stockPrice": 1.8473,
+    "previousClose": 1.8436,
+    "weeklyReturn": 0.34,
+    "marketCap": 25000000000,
+    "currency": "HKD"
+  },
+  "1109.HK": {
+    "ticker": "1109.HK",
+    "stockPrice": 2.7901,
+    "previousClose": 2.7845,
+    "weeklyReturn": -0.41,
+    "marketCap": 30000000000,
+    "currency": "HKD"
+  },
+  "600900.SS": {
+    "ticker": "600900.SS",
+    "stockPrice": 6.4542,
+    "previousClose": 6.4413,
+    "weeklyReturn": 0.34,
+    "marketCap": 65000000000,
+    "currency": "CNY"
+  },
+  "601668.SS": {
+    "ticker": "601668.SS",
+    "stockPrice": 0.9737,
+    "previousClose": 0.9718,
+    "weeklyReturn": 0.34,
+    "marketCap": 27000000000,
+    "currency": "CNY"
+  },
+  "RELIANCE.NS": {
+    "ticker": "RELIANCE.NS",
+    "stockPrice": 16.5055,
+    "previousClose": 16.4725,
+    "weeklyReturn": 0.78,
+    "marketCap": 220000000000,
+    "currency": "INR"
+  },
+  "HDFCBANK.NS": {
+    "ticker": "HDFCBANK.NS",
+    "stockPrice": 18.4261,
+    "previousClose": 18.3892,
+    "weeklyReturn": 0.34,
+    "marketCap": 140000000000,
+    "currency": "INR"
+  },
+  "TCS.NS": {
+    "ticker": "TCS.NS",
+    "stockPrice": 45.6521,
+    "previousClose": 45.5608,
+    "weeklyReturn": 1.56,
+    "marketCap": 165000000000,
+    "currency": "INR"
+  },
+  "INFY.NS": {
+    "ticker": "INFY.NS",
+    "stockPrice": 20.5097,
+    "previousClose": 20.4687,
+    "weeklyReturn": 0.92,
+    "marketCap": 85000000000,
+    "currency": "INR"
+  },
+  "ICICIBANK.NS": {
+    "ticker": "ICICIBANK.NS",
+    "stockPrice": 14.8643,
+    "previousClose": 14.8346,
+    "weeklyReturn": 1.12,
+    "marketCap": 105000000000,
+    "currency": "INR"
+  },
+  "BHARTIARTL.NS": {
+    "ticker": "BHARTIARTL.NS",
+    "stockPrice": 19.4039,
+    "previousClose": 19.3651,
+    "weeklyReturn": -0.41,
+    "marketCap": 105000000000,
+    "currency": "INR"
+  },
+  "SUNPHARMA.NS": {
+    "ticker": "SUNPHARMA.NS",
+    "stockPrice": 21.243,
+    "previousClose": 21.2005,
+    "weeklyReturn": 0.17,
+    "marketCap": 51000000000,
+    "currency": "INR"
+  },
+  "HINDUNILVR.NS": {
+    "ticker": "HINDUNILVR.NS",
+    "stockPrice": 28.1572,
+    "previousClose": 28.1009,
+    "weeklyReturn": -0.12,
+    "marketCap": 66000000000,
+    "currency": "INR"
+  },
+  "TATASTEEL.NS": {
+    "ticker": "TATASTEEL.NS",
+    "stockPrice": 1.7402,
+    "previousClose": 1.7367,
+    "weeklyReturn": -0.23,
+    "marketCap": 22000000000,
+    "currency": "INR"
+  },
+  "LT.NS": {
+    "ticker": "LT.NS",
+    "stockPrice": 41.776,
+    "previousClose": 41.6924,
+    "weeklyReturn": 1.12,
+    "marketCap": 58000000000,
+    "currency": "INR"
+  },
+  "ASIANPAINT.NS": {
+    "ticker": "ASIANPAINT.NS",
+    "stockPrice": 28.972,
+    "previousClose": 28.9141,
+    "weeklyReturn": 0.91,
+    "marketCap": 28000000000,
+    "currency": "INR"
+  },
+  "ONGC.NS": {
+    "ticker": "ONGC.NS",
+    "stockPrice": 2.3862,
+    "previousClose": 2.3814,
+    "weeklyReturn": 0.12,
+    "marketCap": 30000000000,
+    "currency": "INR"
+  },
+  "POWERGRID.NS": {
+    "ticker": "POWERGRID.NS",
+    "stockPrice": 3.5735,
+    "previousClose": 3.5664,
+    "weeklyReturn": 0.12,
+    "marketCap": 33000000000,
+    "currency": "INR"
+  },
+  "NTPC.NS": {
+    "ticker": "NTPC.NS",
+    "stockPrice": 4.074,
+    "previousClose": 4.0659,
+    "weeklyReturn": -0.25,
+    "marketCap": 55000000000,
+    "currency": "INR"
+  },
+  "APOLLOHOSP.NS": {
+    "ticker": "APOLLOHOSP.NS",
+    "stockPrice": 72.7849,
+    "previousClose": 72.6393,
+    "weeklyReturn": 0.91,
+    "marketCap": 26000000000,
+    "currency": "INR"
+  },
+  "ULTRACEMCO.NS": {
+    "ticker": "ULTRACEMCO.NS",
+    "stockPrice": 91.3624,
+    "previousClose": 91.1797,
+    "weeklyReturn": -0.67,
+    "marketCap": 26000000000,
+    "currency": "INR"
+  },
+  "BEL.NS": {
+    "ticker": "BEL.NS",
+    "stockPrice": 6.0761,
+    "previousClose": 6.0639,
+    "weeklyReturn": 0.78,
+    "marketCap": 19000000000,
+    "currency": "INR"
+  },
+  "GODREJPROP.NS": {
+    "ticker": "GODREJPROP.NS",
+    "stockPrice": 35.7115,
+    "previousClose": 35.6401,
+    "weeklyReturn": 0.08,
+    "marketCap": 12000000000,
+    "currency": "INR"
+  },
+  "DLF.NS": {
+    "ticker": "DLF.NS",
+    "stockPrice": 8.8464,
+    "previousClose": 8.8287,
+    "weeklyReturn": 0.47,
+    "marketCap": 22000000000,
+    "currency": "INR"
+  },
+  "IDEA.NS": {
+    "ticker": "IDEA.NS",
+    "stockPrice": 0.1397,
+    "previousClose": 0.1394,
+    "weeklyReturn": 0.67,
+    "marketCap": 8000000000,
+    "currency": "INR"
+  },
+  "005930.KS": {
+    "ticker": "005930.KS",
+    "stockPrice": 44.17,
+    "previousClose": 44.0817,
+    "weeklyReturn": 1.11,
+    "marketCap": 305000000000,
+    "currency": "KRW"
+  },
+  "000660.KS": {
+    "ticker": "000660.KS",
+    "stockPrice": 116.9,
+    "previousClose": 116.6662,
+    "weeklyReturn": 1.72,
+    "marketCap": 85000000000,
+    "currency": "KRW"
+  },
+  "005380.KS": {
+    "ticker": "005380.KS",
+    "stockPrice": 119.56,
+    "previousClose": 119.3209,
+    "weeklyReturn": 0.67,
+    "marketCap": 35000000000,
+    "currency": "KRW"
+  },
+  "005490.KS": {
+    "ticker": "005490.KS",
+    "stockPrice": 196.84,
+    "previousClose": 196.4463,
+    "weeklyReturn": 0.45,
+    "marketCap": 18000000000,
+    "currency": "KRW"
+  },
+  "035420.KS": {
+    "ticker": "035420.KS",
+    "stockPrice": 109.9,
+    "previousClose": 109.6802,
+    "weeklyReturn": 0.65,
+    "marketCap": 18000000000,
+    "currency": "KRW"
+  },
+  "015760.KS": {
+    "ticker": "015760.KS",
+    "stockPrice": 22.54,
+    "previousClose": 22.4949,
+    "weeklyReturn": 0.38,
+    "marketCap": 15000000000,
+    "currency": "KRW"
+  },
+  "068270.KS": {
+    "ticker": "068270.KS",
+    "stockPrice": 144.2,
+    "previousClose": 143.9116,
+    "weeklyReturn": 0.48,
+    "marketCap": 20000000000,
+    "currency": "KRW"
+  },
+  "207940.KS": {
+    "ticker": "207940.KS",
+    "stockPrice": 1100.4,
+    "previousClose": 1098.1992,
+    "weeklyReturn": 0.65,
+    "marketCap": 40000000000,
+    "currency": "KRW"
+  },
+  "003550.KS": {
+    "ticker": "003550.KS",
+    "stockPrice": 49.56,
+    "previousClose": 49.4609,
+    "weeklyReturn": 1.34,
+    "marketCap": 8000000000,
+    "currency": "KRW"
+  },
+  "000120.KS": {
+    "ticker": "000120.KS",
+    "stockPrice": 65.87,
+    "previousClose": 65.7383,
+    "weeklyReturn": 0.45,
+    "marketCap": 3000000000,
+    "currency": "KRW"
+  },
+  "316140.KS": {
+    "ticker": "316140.KS",
+    "stockPrice": 14.0,
+    "previousClose": 13.972,
+    "weeklyReturn": 0.78,
+    "marketCap": 6000000000,
+    "currency": "KRW"
+  },
+  "086790.KS": {
+    "ticker": "086790.KS",
+    "stockPrice": 42.49,
+    "previousClose": 42.405,
+    "weeklyReturn": 1.34,
+    "marketCap": 12000000000,
+    "currency": "KRW"
+  },
+  "030200.KS": {
+    "ticker": "030200.KS",
+    "stockPrice": 19.04,
+    "previousClose": 19.0019,
+    "weeklyReturn": 0.12,
+    "marketCap": 5000000000,
+    "currency": "KRW"
+  },
+  "2330.TW": {
+    "ticker": "2330.TW",
+    "stockPrice": 30.06,
+    "previousClose": 29.9999,
+    "weeklyReturn": 1.28,
+    "marketCap": 750000000000,
+    "currency": "TWD"
+  },
+  "2317.TW": {
+    "ticker": "2317.TW",
+    "stockPrice": 4.2418,
+    "previousClose": 4.2333,
+    "weeklyReturn": 1.43,
+    "marketCap": 55000000000,
+    "currency": "TWD"
+  },
+  "2454.TW": {
+    "ticker": "2454.TW",
+    "stockPrice": 37.5082,
+    "previousClose": 37.4332,
+    "weeklyReturn": 0.87,
+    "marketCap": 60000000000,
+    "currency": "TWD"
+  },
+  "2881.TW": {
+    "ticker": "2881.TW",
+    "stockPrice": 2.5484,
+    "previousClose": 2.5433,
+    "weeklyReturn": 0.62,
+    "marketCap": 22000000000,
+    "currency": "TWD"
+  },
+  "6505.TW": {
+    "ticker": "6505.TW",
+    "stockPrice": 3.1396,
+    "previousClose": 3.1333,
+    "weeklyReturn": 0.56,
+    "marketCap": 12000000000,
+    "currency": "TWD"
+  },
+  "2501.TW": {
+    "ticker": "2501.TW",
+    "stockPrice": 0.6413,
+    "previousClose": 0.64,
+    "weeklyReturn": -0.15,
+    "marketCap": 3000000000,
+    "currency": "TWD"
+  },
+  "1101.TW": {
+    "ticker": "1101.TW",
+    "stockPrice": 1.2976,
+    "previousClose": 1.295,
+    "weeklyReturn": 0.12,
+    "marketCap": 5000000000,
+    "currency": "TWD"
+  },
+  "3045.TW": {
+    "ticker": "3045.TW",
+    "stockPrice": 3.7241,
+    "previousClose": 3.7167,
+    "weeklyReturn": 0.48,
+    "marketCap": 9000000000,
+    "currency": "TWD"
+  },
+  "9902.TW": {
+    "ticker": "9902.TW",
+    "stockPrice": 1.4696,
+    "previousClose": 1.4667,
+    "weeklyReturn": -0.89,
+    "marketCap": 2000000000,
+    "currency": "TWD"
+  },
+  "4743.TWO": {
+    "ticker": "4743.TWO",
+    "stockPrice": 1.837,
+    "previousClose": 1.8333,
+    "weeklyReturn": 1.18,
+    "marketCap": 1500000000,
+    "currency": "TWD"
+  },
+  "D05.SI": {
+    "ticker": "D05.SI",
+    "stockPrice": 33.6567,
+    "previousClose": 33.5894,
+    "weeklyReturn": 1.48,
+    "marketCap": 85000000000,
+    "currency": "SGD"
+  },
+  "O39.SI": {
+    "ticker": "O39.SI",
+    "stockPrice": 15.8124,
+    "previousClose": 15.7808,
+    "weeklyReturn": 0.29,
+    "marketCap": 55000000000,
+    "currency": "SGD"
+  },
+  "Z74.SI": {
+    "ticker": "Z74.SI",
+    "stockPrice": 2.8306,
+    "previousClose": 2.8249,
+    "weeklyReturn": -0.29,
+    "marketCap": 37000000000,
+    "currency": "SGD"
+  },
+  "U96.SI": {
+    "ticker": "U96.SI",
+    "stockPrice": 5.5836,
+    "previousClose": 5.5724,
+    "weeklyReturn": 0.07,
+    "marketCap": 10000000000,
+    "currency": "SGD"
+  },
+  "S68.SI": {
+    "ticker": "S68.SI",
+    "stockPrice": 7.4138,
+    "previousClose": 7.399,
+    "weeklyReturn": 0.95,
+    "marketCap": 8000000000,
+    "currency": "SGD"
+  },
+  "BN4.SI": {
+    "ticker": "BN4.SI",
+    "stockPrice": 6.4211,
+    "previousClose": 6.4083,
+    "weeklyReturn": 0.72,
+    "marketCap": 12000000000,
+    "currency": "SGD"
+  },
+  "CC3.SI": {
+    "ticker": "CC3.SI",
+    "stockPrice": 2.6212,
+    "previousClose": 2.616,
+    "weeklyReturn": 0.29,
+    "marketCap": 17000000000,
+    "currency": "SGD"
+  },
+  "C07.SI": {
+    "ticker": "C07.SI",
+    "stockPrice": 44.3198,
+    "previousClose": 44.2312,
+    "weeklyReturn": 0.93,
+    "marketCap": 14000000000,
+    "currency": "SGD"
+  },
+  "C09.SI": {
+    "ticker": "C09.SI",
+    "stockPrice": 5.0097,
+    "previousClose": 4.9997,
+    "weeklyReturn": -0.38,
+    "marketCap": 4000000000,
+    "currency": "SGD"
+  },
+  "F34.SI": {
+    "ticker": "F34.SI",
+    "stockPrice": 2.9314,
+    "previousClose": 2.9255,
+    "weeklyReturn": 0.45,
+    "marketCap": 18000000000,
+    "currency": "SGD"
+  },
+  "SE": {
+    "ticker": "SE",
+    "stockPrice": 81.2,
+    "previousClose": 81.0376,
+    "weeklyReturn": 1.61,
+    "marketCap": 45000000000,
+    "currency": "USD"
+  },
+  "BS6.SI": {
+    "ticker": "BS6.SI",
+    "stockPrice": 1.4812,
+    "previousClose": 1.4782,
+    "weeklyReturn": 1.28,
+    "marketCap": 5000000000,
+    "currency": "SGD"
+  },
+  "Q0F.SI": {
+    "ticker": "Q0F.SI",
+    "stockPrice": 1.7216,
+    "previousClose": 1.7182,
+    "weeklyReturn": 0.19,
+    "marketCap": 5000000000,
+    "currency": "SGD"
+  },
+  "V03.SI": {
+    "ticker": "V03.SI",
+    "stockPrice": 11.6558,
+    "previousClose": 11.6325,
+    "weeklyReturn": 0.61,
+    "marketCap": 3000000000,
+    "currency": "SGD"
+  },
+  "OV8.SI": {
+    "ticker": "OV8.SI",
+    "stockPrice": 1.4269,
+    "previousClose": 1.424,
+    "weeklyReturn": 0.83,
+    "marketCap": 2000000000,
+    "currency": "SGD"
+  },
+  "A7RU.SI": {
+    "ticker": "A7RU.SI",
+    "stockPrice": 1.5898,
+    "previousClose": 1.5866,
+    "weeklyReturn": 0.41,
+    "marketCap": 4000000000,
+    "currency": "SGD"
+  },
+  "S58.SI": {
+    "ticker": "S58.SI",
+    "stockPrice": 2.5281,
+    "previousClose": 2.523,
+    "weeklyReturn": 1.47,
+    "marketCap": 3500000000,
+    "currency": "SGD"
+  },
+  "BSL.SI": {
+    "ticker": "BSL.SI",
+    "stockPrice": 1.2175,
+    "previousClose": 1.2151,
+    "weeklyReturn": 0.29,
+    "marketCap": 1000000000,
+    "currency": "SGD"
+  },
+  "E5H.SI": {
+    "ticker": "E5H.SI",
+    "stockPrice": 2.6289,
+    "previousClose": 2.6236,
+    "weeklyReturn": -0.32,
+    "marketCap": 13000000000,
+    "currency": "SGD"
+  },
+  "AJBU.SI": {
+    "ticker": "AJBU.SI",
+    "stockPrice": 0.7755,
+    "previousClose": 0.7739,
+    "weeklyReturn": 0.23,
+    "marketCap": 3000000000,
+    "currency": "SGD"
+  },
+  "Y92.SI": {
+    "ticker": "Y92.SI",
+    "stockPrice": 0.5273,
+    "previousClose": 0.5262,
+    "weeklyReturn": -0.24,
+    "marketCap": 8000000000,
+    "currency": "SGD"
+  },
+  "BBCA.JK": {
+    "ticker": "BBCA.JK",
+    "stockPrice": 0.5814,
+    "previousClose": 0.5802,
+    "weeklyReturn": 1.17,
+    "marketCap": 55000000000,
+    "currency": "IDR"
+  },
+  "BBRI.JK": {
+    "ticker": "BBRI.JK",
+    "stockPrice": 0.2968,
+    "previousClose": 0.2962,
+    "weeklyReturn": 0.43,
+    "marketCap": 37000000000,
+    "currency": "IDR"
+  },
+  "TLKM.JK": {
+    "ticker": "TLKM.JK",
+    "stockPrice": 0.1958,
+    "previousClose": 0.1954,
+    "weeklyReturn": 0.71,
+    "marketCap": 18000000000,
+    "currency": "IDR"
+  },
+  "UNVR.JK": {
+    "ticker": "UNVR.JK",
+    "stockPrice": 0.284,
+    "previousClose": 0.2834,
+    "weeklyReturn": 0.56,
+    "marketCap": 7000000000,
+    "currency": "IDR"
+  },
+  "KLBF.JK": {
+    "ticker": "KLBF.JK",
+    "stockPrice": 0.1102,
+    "previousClose": 0.11,
+    "weeklyReturn": 0.78,
+    "marketCap": 5000000000,
+    "currency": "IDR"
+  },
+  "ADRO.JK": {
+    "ticker": "ADRO.JK",
+    "stockPrice": 0.2277,
+    "previousClose": 0.2272,
+    "weeklyReturn": -0.08,
+    "marketCap": 10000000000,
+    "currency": "IDR"
+  },
+  "INDF.JK": {
+    "ticker": "INDF.JK",
+    "stockPrice": 0.3901,
+    "previousClose": 0.3893,
+    "weeklyReturn": 0.91,
+    "marketCap": 5000000000,
+    "currency": "IDR"
+  },
+  "INTP.JK": {
+    "ticker": "INTP.JK",
+    "stockPrice": 0.2173,
+    "previousClose": 0.2169,
+    "weeklyReturn": 0.63,
+    "marketCap": 3000000000,
+    "currency": "IDR"
+  },
+  "GOTO.JK": {
+    "ticker": "GOTO.JK",
+    "stockPrice": 0.0174,
+    "previousClose": 0.0174,
+    "weeklyReturn": 1.95,
+    "marketCap": 4000000000,
+    "currency": "IDR"
+  },
+  "ISAT.JK": {
+    "ticker": "ISAT.JK",
+    "stockPrice": 0.3886,
+    "previousClose": 0.3878,
+    "weeklyReturn": 0.38,
+    "marketCap": 4000000000,
+    "currency": "IDR"
+  },
+  "PGAS.JK": {
+    "ticker": "PGAS.JK",
+    "stockPrice": 0.0848,
+    "previousClose": 0.0846,
+    "weeklyReturn": 0.34,
+    "marketCap": 4000000000,
+    "currency": "IDR"
+  },
+  "SMGR.JK": {
+    "ticker": "SMGR.JK",
+    "stockPrice": 0.306,
+    "previousClose": 0.3054,
+    "weeklyReturn": -0.34,
+    "marketCap": 3000000000,
+    "currency": "IDR"
+  },
+  "TOBA.JK": {
+    "ticker": "TOBA.JK",
+    "stockPrice": 0.049,
+    "previousClose": 0.0489,
+    "weeklyReturn": 0.89,
+    "marketCap": 1000000000,
+    "currency": "IDR"
+  },
+  "UNTR.JK": {
+    "ticker": "UNTR.JK",
+    "stockPrice": 1.5208,
+    "previousClose": 1.5178,
+    "weeklyReturn": 0.38,
+    "marketCap": 12000000000,
+    "currency": "IDR"
+  },
+  "BSDE.JK": {
+    "ticker": "BSDE.JK",
+    "stockPrice": 0.0741,
+    "previousClose": 0.074,
+    "weeklyReturn": -0.08,
+    "marketCap": 3000000000,
+    "currency": "IDR"
+  },
+  "BUKA.JK": {
+    "ticker": "BUKA.JK",
+    "stockPrice": 0.0202,
+    "previousClose": 0.0202,
+    "weeklyReturn": 0.55,
+    "marketCap": 1000000000,
+    "currency": "IDR"
+  },
+  "PWON.JK": {
+    "ticker": "PWON.JK",
+    "stockPrice": 0.0233,
+    "previousClose": 0.0233,
+    "weeklyReturn": 0.38,
+    "marketCap": 2000000000,
+    "currency": "IDR"
+  },
+  "SIDO.JK": {
+    "ticker": "SIDO.JK",
+    "stockPrice": 0.0435,
+    "previousClose": 0.0434,
+    "weeklyReturn": 0.18,
+    "marketCap": 2000000000,
+    "currency": "IDR"
+  },
+  "WIKA.JK": {
+    "ticker": "WIKA.JK",
+    "stockPrice": 0.0229,
+    "previousClose": 0.0229,
+    "weeklyReturn": 1.05,
+    "marketCap": 1000000000,
+    "currency": "IDR"
+  },
+  "POWR.JK": {
+    "ticker": "POWR.JK",
+    "stockPrice": 0.0508,
+    "previousClose": 0.0507,
+    "weeklyReturn": -0.29,
+    "marketCap": 1000000000,
+    "currency": "IDR"
+  },
+  "PTT.BK": {
+    "ticker": "PTT.BK",
+    "stockPrice": 1.2012,
+    "previousClose": 1.1988,
+    "weeklyReturn": -0.23,
+    "marketCap": 16000000000,
+    "currency": "THB"
+  },
+  "KBANK.BK": {
+    "ticker": "KBANK.BK",
+    "stockPrice": 5.0666,
+    "previousClose": 5.0565,
+    "weeklyReturn": 1.31,
+    "marketCap": 13000000000,
+    "currency": "THB"
+  },
+  "BBL.BK": {
+    "ticker": "BBL.BK",
+    "stockPrice": 4.9896,
+    "previousClose": 4.9796,
+    "weeklyReturn": 0.68,
+    "marketCap": 8000000000,
+    "currency": "THB"
+  },
+  "CPALL.BK": {
+    "ticker": "CPALL.BK",
+    "stockPrice": 1.9712,
+    "previousClose": 1.9673,
+    "weeklyReturn": 0.72,
+    "marketCap": 15000000000,
+    "currency": "THB"
+  },
+  "BDMS.BK": {
+    "ticker": "BDMS.BK",
+    "stockPrice": 0.6222,
+    "previousClose": 0.621,
+    "weeklyReturn": 0.12,
+    "marketCap": 12000000000,
+    "currency": "THB"
+  },
+  "BH.BK": {
+    "ticker": "BH.BK",
+    "stockPrice": 6.8838,
+    "previousClose": 6.87,
+    "weeklyReturn": 0.54,
+    "marketCap": 4000000000,
+    "currency": "THB"
+  },
+  "TRUE.BK": {
+    "ticker": "TRUE.BK",
+    "stockPrice": 0.1925,
+    "previousClose": 0.1921,
+    "weeklyReturn": -0.12,
+    "marketCap": 6000000000,
+    "currency": "THB"
+  },
+  "ADVANC.BK": {
+    "ticker": "ADVANC.BK",
+    "stockPrice": 3.08,
+    "previousClose": 3.0738,
+    "weeklyReturn": 0.59,
+    "marketCap": 12000000000,
+    "currency": "THB"
+  },
+  "INTUCH.BK": {
+    "ticker": "INTUCH.BK",
+    "stockPrice": 2.2484,
+    "previousClose": 2.2439,
+    "weeklyReturn": 0.25,
+    "marketCap": 7000000000,
+    "currency": "THB"
+  },
+  "CPN.BK": {
+    "ticker": "CPN.BK",
+    "stockPrice": 1.7802,
+    "previousClose": 1.7766,
+    "weeklyReturn": -0.45,
+    "marketCap": 8000000000,
+    "currency": "THB"
+  },
+  "DELTA.BK": {
+    "ticker": "DELTA.BK",
+    "stockPrice": 17.094,
+    "previousClose": 17.0598,
+    "weeklyReturn": 1.38,
+    "marketCap": 5000000000,
+    "currency": "THB"
+  },
+  "GULF.BK": {
+    "ticker": "GULF.BK",
+    "stockPrice": 1.3798,
+    "previousClose": 1.377,
+    "weeklyReturn": 0.61,
+    "marketCap": 8000000000,
+    "currency": "THB"
+  },
+  "LH.BK": {
+    "ticker": "LH.BK",
+    "stockPrice": 0.2618,
+    "previousClose": 0.2613,
+    "weeklyReturn": 0.15,
+    "marketCap": 3000000000,
+    "currency": "THB"
+  },
+  "PTTGC.BK": {
+    "ticker": "PTTGC.BK",
+    "stockPrice": 0.7207,
+    "previousClose": 0.7193,
+    "weeklyReturn": 0.87,
+    "marketCap": 5000000000,
+    "currency": "THB"
+  },
+  "SCC.BK": {
+    "ticker": "SCC.BK",
+    "stockPrice": 4.466,
+    "previousClose": 4.4571,
+    "weeklyReturn": -0.12,
+    "marketCap": 12000000000,
+    "currency": "THB"
+  },
+  "EGCO.BK": {
+    "ticker": "EGCO.BK",
+    "stockPrice": 2.9722,
+    "previousClose": 2.9663,
+    "weeklyReturn": 0.19,
+    "marketCap": 3000000000,
+    "currency": "THB"
+  },
+  "RATCH.BK": {
+    "ticker": "RATCH.BK",
+    "stockPrice": 1.3614,
+    "previousClose": 1.3587,
+    "weeklyReturn": 0.32,
+    "marketCap": 3000000000,
+    "currency": "THB"
+  },
+  "IVL.BK": {
+    "ticker": "IVL.BK",
+    "stockPrice": 1.1304,
+    "previousClose": 1.1281,
+    "weeklyReturn": 0.56,
+    "marketCap": 5000000000,
+    "currency": "THB"
+  },
+  "THAI.BK": {
+    "ticker": "THAI.BK",
+    "stockPrice": 0.4928,
+    "previousClose": 0.4918,
+    "weeklyReturn": 0.84,
+    "marketCap": 1000000000,
+    "currency": "THB"
+  },
+  "5347.KL": {
+    "ticker": "5347.KL",
+    "stockPrice": 2.7765,
+    "previousClose": 2.7709,
+    "weeklyReturn": -0.13,
+    "marketCap": 17000000000,
+    "currency": "MYR"
+  },
+  "1155.KL": {
+    "ticker": "1155.KL",
+    "stockPrice": 2.4283,
+    "previousClose": 2.4234,
+    "weeklyReturn": 1.09,
+    "marketCap": 27000000000,
+    "currency": "MYR"
+  },
+  "4197.KL": {
+    "ticker": "4197.KL",
+    "stockPrice": 0.5812,
+    "previousClose": 0.58,
+    "weeklyReturn": 0.51,
+    "marketCap": 6000000000,
+    "currency": "MYR"
+  },
+  "1295.KL": {
+    "ticker": "1295.KL",
+    "stockPrice": 0.4894,
+    "previousClose": 0.4884,
+    "weeklyReturn": 1.42,
+    "marketCap": 19000000000,
+    "currency": "MYR"
+  },
+  "6888.KL": {
+    "ticker": "6888.KL",
+    "stockPrice": 0.5271,
+    "previousClose": 0.526,
+    "weeklyReturn": 0.44,
+    "marketCap": 5000000000,
+    "currency": "MYR"
+  },
+  "5225.KL": {
+    "ticker": "5225.KL",
+    "stockPrice": 0.6212,
+    "previousClose": 0.62,
+    "weeklyReturn": 0.87,
+    "marketCap": 12000000000,
+    "currency": "MYR"
+  },
+  "5196.KL": {
+    "ticker": "5196.KL",
+    "stockPrice": 2.0942,
+    "previousClose": 2.09,
+    "weeklyReturn": 0.15,
+    "marketCap": 10000000000,
+    "currency": "MYR"
+  },
+  "5031.KL": {
+    "ticker": "5031.KL",
+    "stockPrice": 0.6118,
+    "previousClose": 0.6106,
+    "weeklyReturn": -0.78,
+    "marketCap": 12000000000,
+    "currency": "MYR"
+  },
+  "4707.KL": {
+    "ticker": "4707.KL",
+    "stockPrice": 3.8777,
+    "previousClose": 3.8699,
+    "weeklyReturn": 0.72,
+    "marketCap": 5000000000,
+    "currency": "MYR"
+  },
+  "6033.KL": {
+    "ticker": "6033.KL",
+    "stockPrice": 0.8941,
+    "previousClose": 0.8923,
+    "weeklyReturn": -0.35,
+    "marketCap": 7000000000,
+    "currency": "MYR"
+  },
+  "3794.KL": {
+    "ticker": "3794.KL",
+    "stockPrice": 1.3224,
+    "previousClose": 1.3198,
+    "weeklyReturn": 1.21,
+    "marketCap": 8000000000,
+    "currency": "MYR"
+  },
+  "5183.KL": {
+    "ticker": "5183.KL",
+    "stockPrice": 0.7435,
+    "previousClose": 0.742,
+    "weeklyReturn": 0.29,
+    "marketCap": 9000000000,
+    "currency": "MYR"
+  },
+  "0166.KL": {
+    "ticker": "0166.KL",
+    "stockPrice": 0.5412,
+    "previousClose": 0.5401,
+    "weeklyReturn": -0.08,
+    "marketCap": 8000000000,
+    "currency": "MYR"
+  },
+  "8664.KL": {
+    "ticker": "8664.KL",
+    "stockPrice": 0.2777,
+    "previousClose": 0.2771,
+    "weeklyReturn": 0.41,
+    "marketCap": 2000000000,
+    "currency": "MYR"
+  },
+  "5211.KL": {
+    "ticker": "5211.KL",
+    "stockPrice": 0.4494,
+    "previousClose": 0.4485,
+    "weeklyReturn": 0.39,
+    "marketCap": 8000000000,
+    "currency": "MYR"
+  },
+  "8869.KL": {
+    "ticker": "8869.KL",
+    "stockPrice": 0.24,
+    "previousClose": 0.2395,
+    "weeklyReturn": 0.63,
+    "marketCap": 2000000000,
+    "currency": "MYR"
+  },
+  "7153.KL": {
+    "ticker": "7153.KL",
+    "stockPrice": 0.4,
+    "previousClose": 0.3992,
+    "weeklyReturn": 0.64,
+    "marketCap": 1000000000,
+    "currency": "MYR"
+  },
+  "6742.KL": {
+    "ticker": "6742.KL",
+    "stockPrice": 0.4941,
+    "previousClose": 0.4931,
+    "weeklyReturn": 0.28,
+    "marketCap": 8000000000,
+    "currency": "MYR"
+  },
+  "5878.KL": {
+    "ticker": "5878.KL",
+    "stockPrice": 4.3389,
+    "previousClose": 4.3302,
+    "weeklyReturn": 0.27,
+    "marketCap": 6000000000,
+    "currency": "MYR"
+  },
+  "6012.KL": {
+    "ticker": "6012.KL",
+    "stockPrice": 0.3671,
+    "previousClose": 0.3664,
+    "weeklyReturn": 0.62,
+    "marketCap": 7000000000,
+    "currency": "MYR"
+  },
+  "2222.SR": {
+    "ticker": "2222.SR",
+    "stockPrice": 9.9733,
+    "previousClose": 9.9534,
+    "weeklyReturn": -0.45,
+    "marketCap": 1800000000000,
+    "currency": "SAR"
+  },
+  "1120.SR": {
+    "ticker": "1120.SR",
+    "stockPrice": 31.6,
+    "previousClose": 31.5368,
+    "weeklyReturn": 0.76,
+    "marketCap": 95000000000,
+    "currency": "SAR"
+  },
+  "7010.SR": {
+    "ticker": "7010.SR",
+    "stockPrice": 13.4267,
+    "previousClose": 13.3998,
+    "weeklyReturn": 0.18,
+    "marketCap": 45000000000,
+    "currency": "SAR"
+  },
+  "7200.SR": {
+    "ticker": "7200.SR",
+    "stockPrice": 2.6587,
+    "previousClose": 2.6534,
+    "weeklyReturn": -0.21,
+    "marketCap": 30000000000,
+    "currency": "SAR"
+  },
+  "2330.SR": {
+    "ticker": "2330.SR",
+    "stockPrice": 13.0667,
+    "previousClose": 13.0406,
+    "weeklyReturn": 0.73,
+    "marketCap": 5000000000,
+    "currency": "SAR"
+  },
+  "1180.SR": {
+    "ticker": "1180.SR",
+    "stockPrice": 12.9333,
+    "previousClose": 12.9074,
+    "weeklyReturn": 0.87,
+    "marketCap": 40000000000,
+    "currency": "SAR"
+  },
+  "4009.SR": {
+    "ticker": "4009.SR",
+    "stockPrice": 19.4667,
+    "previousClose": 19.4278,
+    "weeklyReturn": -0.45,
+    "marketCap": 60000000000,
+    "currency": "SAR"
+  },
+  "4300.SR": {
+    "ticker": "4300.SR",
+    "stockPrice": 6.1867,
+    "previousClose": 6.1743,
+    "weeklyReturn": 0.61,
+    "marketCap": 5000000000,
+    "currency": "SAR"
+  },
+  "4002.SR": {
+    "ticker": "4002.SR",
+    "stockPrice": 2.448,
+    "previousClose": 2.4431,
+    "weeklyReturn": -0.18,
+    "marketCap": 4000000000,
+    "currency": "SAR"
+  },
+  "4250.SR": {
+    "ticker": "4250.SR",
+    "stockPrice": 32.2667,
+    "previousClose": 32.2022,
+    "weeklyReturn": 0.96,
+    "marketCap": 6000000000,
+    "currency": "SAR"
+  },
+  "2050.SR": {
+    "ticker": "2050.SR",
+    "stockPrice": 5.7333,
+    "previousClose": 5.7218,
+    "weeklyReturn": 0.85,
+    "marketCap": 4000000000,
+    "currency": "SAR"
+  },
+  "7030.SR": {
+    "ticker": "7030.SR",
+    "stockPrice": 5.12,
+    "previousClose": 5.1098,
+    "weeklyReturn": 0.73,
+    "marketCap": 6000000000,
+    "currency": "SAR"
+  },
+  "2060.SR": {
+    "ticker": "2060.SR",
+    "stockPrice": 7.04,
+    "previousClose": 7.0259,
+    "weeklyReturn": 1.23,
+    "marketCap": 12000000000,
+    "currency": "SAR"
+  },
+  "2280.SR": {
+    "ticker": "2280.SR",
+    "stockPrice": 15.4667,
+    "previousClose": 15.4358,
+    "weeklyReturn": -0.19,
+    "marketCap": 15000000000,
+    "currency": "SAR"
+  },
+  "4030.SR": {
+    "ticker": "4030.SR",
+    "stockPrice": 3.592,
+    "previousClose": 3.5848,
+    "weeklyReturn": 0.34,
+    "marketCap": 2000000000,
+    "currency": "SAR"
+  },
+  "1211.SR": {
+    "ticker": "1211.SR",
+    "stockPrice": 14.16,
+    "previousClose": 14.1317,
+    "weeklyReturn": 0.56,
+    "marketCap": 12000000000,
+    "currency": "SAR"
+  },
+  "5110.SR": {
+    "ticker": "5110.SR",
+    "stockPrice": 15.3867,
+    "previousClose": 15.3559,
+    "weeklyReturn": 1.45,
+    "marketCap": 18000000000,
+    "currency": "SAR"
+  },
+  "2010.SR": {
+    "ticker": "2010.SR",
+    "stockPrice": 14.4,
+    "previousClose": 14.3712,
+    "weeklyReturn": -0.56,
+    "marketCap": 60000000000,
+    "currency": "SAR"
+  },
+  "2082.SR": {
+    "ticker": "2082.SR",
+    "stockPrice": 3.8933,
+    "previousClose": 3.8855,
+    "weeklyReturn": 0.89,
+    "marketCap": 3000000000,
+    "currency": "SAR"
+  },
+  "7020.SR": {
+    "ticker": "7020.SR",
+    "stockPrice": 11.12,
+    "previousClose": 11.0978,
+    "weeklyReturn": -0.08,
+    "marketCap": 8000000000,
+    "currency": "SAR"
+  }
+}

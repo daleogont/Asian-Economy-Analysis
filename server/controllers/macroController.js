@@ -3,7 +3,7 @@ const axios = require("axios");
 const getMacro = async (req, res) => {
   const country = req.query.country;
   if (!country) {
-    return res.status(400).json({ error: "Необхідно передати параметр country" });
+    return res.status(400).json({ error: "Missing required query parameter: country" });
   }
 
   const COUNTRY_CODES = {
@@ -21,7 +21,7 @@ const getMacro = async (req, res) => {
 
   const code = COUNTRY_CODES[country];
   if (!code) {
-    return res.status(400).json({ error: "Країну не знайдено" });
+    return res.status(400).json({ error: "Country not found" });
   }
 
   function findFirstValidValue(arr) {
@@ -50,7 +50,7 @@ const getMacro = async (req, res) => {
     });
   } catch (e) {
     console.error("Macro error:", e.message);
-    res.status(500).json({ error: "Не вдалося завантажити макродані" });
+    res.status(500).json({ error: "Failed to load macro data" });
   }
 };
 

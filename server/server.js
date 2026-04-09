@@ -1,39 +1,35 @@
+require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const fs   = require("fs");
+const cors    = require("cors");
 
-const cachePath = path.join(__dirname, "../data/cache.json");
+const companiesRouter    = require("./routes/companies");
+const sectorsRouter      = require("./routes/sectors");
+const countriesRouter    = require("./routes/countries");
+const macroRouter        = require("./routes/macro");
+const healthRouter       = require("./routes/health");
+const topMoversRouter    = require("./routes/topMovers");
+const sectorLeadersRouter  = require("./routes/sectorLeaders");
+const marketOverviewRouter = require("./routes/marketOverview");
 
-const companiesRouter     = require("./routes/companies");
-const sectorsRouter       = require("./routes/sectors");
-const countriesRouter     = require("./routes/countries");
-const macroRouter         = require("./routes/macro");
-const healthRouter        = require("./routes/health");
+const { prewarmCache }   = require("./utils/dataService");
+const companies          = require("../data/realCompanies.json");
 
-const topMoversRouter       = require("./routes/topMovers");
-const sectorLeadersRouter   = require("./routes/sectorLeaders");
-const marketOverviewRouter  = require("./routes/marketOverview");
-
-const app = express();
+const app  = express();
 const PORT = require("./config").PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/companies", companiesRouter);
-app.use("/api/sectors",   sectorsRouter);
-app.use("/api/countries", countriesRouter);
-app.use("/api/macros",    macroRouter);
+app.use("/api/companies",        companiesRouter);
+app.use("/api/sectors",          sectorsRouter);
+app.use("/api/countries",        countriesRouter);
+app.use("/api/macros",           macroRouter);
 app.use("/api/top-movers",       topMoversRouter);
 app.use("/api/sector-leaders",   sectorLeadersRouter);
 app.use("/api/market-overview",  marketOverviewRouter);
+app.use("/api/health",           healthRouter);
 
-
-app.get("/", (req, res) => {
-  res.send("Asian Economy Analysis API is running.");
-});
-app.use("/api/health", healthRouter);
+app.get("/", (req, res) => res.send("Asian Economy Analysis API is running."));
 
 app.use((err, req, res, next) => {
   console.error("Server error:", err);
@@ -41,18 +37,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Сервер запущено на порту ${PORT}`);
-});
-
-process.on("SIGINT", () => {
-  console.log("\nОтримано SIGINT — очищуємо cache.json…");
-  try {
-    if (fs.existsSync(cachePath)) {
-      fs.writeFileSync(cachePath, "{}");
-      console.log("✅ Файл cache.json очищено ({}).");
-    }
-  } catch (err) {
-    console.error("❌ Не вдалося очистити cache.json:", err.message);
-  }
-  process.exit();
+  console.log(`✅ Server running on port ${PORT}`);
+  // Pre-warm runs in background — server is already accepting requests
+  prewarmCache(companies).catch(console.error);
 });

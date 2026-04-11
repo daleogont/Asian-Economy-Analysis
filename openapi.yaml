@@ -1,0 +1,389 @@
+openapi: 3.0.3
+
+info:
+  title: Asian Capital Markets — Analytics API
+  description: |
+    Python FastAPI analytics service for the Asian Capital Markets Intelligence Platform.
+
+    Provides descriptive statistics, rolling moving averages, and ARIMA(1,1,1) price forecasting
+    for ~272 companies across 14 Asian countries and 11 market sectors.
+
+    **Data source:** PostgreSQL (`daily_prices` table, 2 years of OHLCV history)
+
+    **In Docker:** accessible at `http://localhost:8000` directly,
+    or via Nginx proxy at `http://localhost:3000/analytics/`
+  version: "1.0.0"
+  contact:
+    name: Asian Economy Analysis
+
+servers:
+  - url: http://localhost:8000
+    description: Local Docker (python-api container)
+  - url: http://localhost:3000/analytics
+    description: Via Nginx proxy (production)
+
+tags:
+  - name: Health
+    description: Service health check
+  - name: Summary
+    description: Descriptive statistics (mean, median, std, min, max) for groups of companies
+  - name: Rolling
+    description: Daily close prices with N-day rolling moving average
+  - name: Forecast
+    description: ARIMA(1,1,1) price forecasting with 95% confidence intervals
+
+paths:
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns `{"status":"ok"}` if the service is running and connected.
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /analytics/summary:
+    get:
+      tags: [Summary]
+      summary: Descriptive statistics for a group of companies
+      description: |
+        Computes mean, median, standard deviation, min, and max for:
+        - Latest **close price** across matched companies
+        - **5-day weekly return** (percentage change vs 5 trading days ago)
+
+        Filter by `country`, `sector`, both, or neither (returns stats for all companies).
+      parameters:
+        - name: country
+          in: query
+          required: false
+          description: Filter by country name (e.g. `Japan`, `South Korea`, `Saudi Arabia`)
+          schema:
+            type: string
+            example: Japan
+        - name: sector
+          in: query
+          required: false
+          description: |
+            Filter by sector name. One of:
+            Communication Services, Consumer Discretionary, Consumer Staples,
+            Energy, Financials, Health Care, Industrials, Information Technology,
+            Materials, Real Estate, Utilities
+          schema:
+            type: string
+            example: Financials
+      responses:
+        "200":
+          description: Statistics computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryResponse"
+              example:
+                filters:
+                  country: Japan
+                  sector: null
+                companyCount: 22
+                price:
+                  mean: 3241.85
+                  median: 1850.5
+                  std: 4102.33
+                  min: 112.4
+                  max: 19800.0
+                  count: 22
+                weeklyReturn:
+                  mean: 0.42
+                  median: 0.31
+                  std: 1.87
+                  min: -3.12
+                  max: 4.55
+                  count: 22
+        "404":
+          description: No data found for given filters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/rolling/{ticker}:
+    get:
+      tags: [Rolling]
+      summary: Close price + rolling moving average
+      description: |
+        Returns a time series of daily close prices plus an N-day rolling moving average
+        for the specified ticker.
+
+        The response key for the moving average is dynamic: `ma{window}` (e.g. `ma30`, `ma7`).
+
+        **period** maps to history length:
+        - `3m` → 90 days
+        - `6m` → 180 days
+        - `1y` → 365 days
+        - `2y` → 730 days
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Yahoo Finance ticker symbol (e.g. `9988.HK`, `005930.KS`, `7203.T`)
+          schema:
+            type: string
+            example: 9988.HK
+        - name: window
+          in: query
+          required: false
+          description: Rolling window in trading days (min 2, max 200)
+          schema:
+            type: integer
+            default: 30
+            minimum: 2
+            maximum: 200
+            example: 30
+        - name: period
+          in: query
+          required: false
+          description: History window — 3m | 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [3m, 6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: Rolling average time series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RollingResponse"
+              example:
+                ticker: 9988.HK
+                window: 30
+                period: 1y
+                data:
+                  - date: "2024-01-02"
+                    close: 72.45
+                    ma30: 71.80
+                  - date: "2024-01-03"
+                    close: 73.10
+                    ma30: 71.95
+        "404":
+          description: No data found for ticker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/forecast/{ticker}:
+    get:
+      tags: [Forecast]
+      summary: ARIMA(1,1,1) price forecast
+      description: |
+        Fits an **ARIMA(1,1,1)** model on historical close prices and returns:
+        - `history` — real prices used for model training (business-day aligned, gaps forward-filled)
+        - `forecast` — N-day forward predictions with **95% confidence interval** bounds
+
+        **How it works:**
+        1. Fetches close prices from PostgreSQL for the specified history window
+        2. Resamples to business-day frequency, fills gaps with forward-fill
+        3. Fits ARIMA(1,1,1) via statsmodels
+        4. Projects `days` steps ahead
+        5. Returns confidence interval (alpha=0.05)
+
+        **Constraints:**
+        - Minimum 60 rows of history required — raises 422 otherwise
+        - `days` range: 7 to 90
+        - Wider forecast horizon = wider confidence bands (uncertainty compounds)
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Yahoo Finance ticker symbol
+          schema:
+            type: string
+            example: 9988.HK
+        - name: days
+          in: query
+          required: false
+          description: Forecast horizon in trading days (7–90)
+          schema:
+            type: integer
+            default: 30
+            minimum: 7
+            maximum: 90
+            example: 30
+        - name: period
+          in: query
+          required: false
+          description: History window used for ARIMA training — 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: ARIMA forecast result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForecastResponse"
+              example:
+                ticker: 9988.HK
+                model: ARIMA(1,1,1)
+                days: 30
+                period: 1y
+                history:
+                  - date: "2024-01-02"
+                    actual: 72.45
+                  - date: "2024-01-03"
+                    actual: 73.10
+                forecast:
+                  - date: "2025-01-06"
+                    predicted: 74.32
+                    lower: 68.11
+                    upper: 80.53
+                  - date: "2025-01-07"
+                    predicted: 74.58
+                    lower: 67.21
+                    upper: 81.95
+        "422":
+          description: Not enough historical data (need ≥ 60 rows)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                detail: "Not enough data for XYZ — need 60 rows, got 12"
+
+components:
+  schemas:
+
+    StatBlock:
+      type: object
+      description: Descriptive statistics for a numeric series
+      properties:
+        mean:   { type: number, example: 3241.85 }
+        median: { type: number, example: 1850.5  }
+        std:    { type: number, example: 4102.33 }
+        min:    { type: number, example: 112.4   }
+        max:    { type: number, example: 19800.0 }
+        count:  { type: integer, example: 22     }
+
+    SummaryResponse:
+      type: object
+      properties:
+        filters:
+          type: object
+          properties:
+            country: { type: string, nullable: true, example: Japan }
+            sector:  { type: string, nullable: true, example: null  }
+        companyCount:
+          type: integer
+          example: 22
+        price:
+          allOf:
+            - $ref: "#/components/schemas/StatBlock"
+          nullable: true
+        weeklyReturn:
+          allOf:
+            - $ref: "#/components/schemas/StatBlock"
+          nullable: true
+
+    RollingDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2024-06-15"
+        close:
+          type: number
+          example: 72.45
+      additionalProperties:
+        type: number
+        description: Dynamic key maN where N is the window size (e.g. ma30)
+
+    RollingResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: 9988.HK
+        window:
+          type: integer
+          example: 30
+        period:
+          type: string
+          example: 1y
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RollingDataPoint"
+
+    HistoryPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2024-06-15"
+        actual:
+          type: number
+          example: 72.45
+
+    ForecastPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-01-06"
+        predicted:
+          type: number
+          example: 74.32
+        lower:
+          type: number
+          description: Lower bound of 95% confidence interval
+          example: 68.11
+        upper:
+          type: number
+          description: Upper bound of 95% confidence interval
+          example: 80.53
+
+    ForecastResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: 9988.HK
+        model:
+          type: string
+          example: ARIMA(1,1,1)
+        days:
+          type: integer
+          example: 30
+        period:
+          type: string
+          example: 1y
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryPoint"
+        forecast:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForecastPoint"
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: No data found for given filters

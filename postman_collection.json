@@ -1,0 +1,440 @@
+{
+  "info": {
+    "name": "Asian Economy Analysis API",
+    "description": "Complete API collection for the Asian Capital Markets Intelligence Platform.\n\nTwo backends:\n- Node.js API: http://localhost:4000\n- Python FastAPI (Analytics): http://localhost:8000\n\nIn production (Docker), both are proxied through Nginx on port 3000:\n- /api/* → Node.js\n- /analytics/* → Python",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "node_url",   "value": "http://localhost:4000", "type": "string" },
+    { "key": "python_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "ticker_hk",  "value": "9988.HK",  "type": "string" },
+    { "key": "ticker_kr",  "value": "005930.KS", "type": "string" },
+    { "key": "ticker_jp",  "value": "7203.T",    "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Node.js API",
+      "item": [
+        {
+          "name": "Health",
+          "item": [
+            {
+              "name": "Server health & cache status",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/health", "host": ["{{node_url}}"], "path": ["api","health"] },
+                "description": "Returns server status and live-data cache statistics (total, live, seed, stale entries, Yahoo vs Twelve Data split)."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Companies",
+          "item": [
+            {
+              "name": "Get all companies",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/companies", "host": ["{{node_url}}"], "path": ["api","companies"] },
+                "description": "Returns all 272 companies with latest stock price, weekly return, country, sector, exchange. Data sourced from PostgreSQL daily_prices joined with companies table."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Countries",
+          "item": [
+            {
+              "name": "Get all countries",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/countries", "host": ["{{node_url}}"], "path": ["api","countries"] },
+                "description": "Returns aggregated stats per country: company count, sector breakdown, average weekly return."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Sectors",
+          "item": [
+            {
+              "name": "Get all sectors",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/sectors", "host": ["{{node_url}}"], "path": ["api","sectors"] },
+                "description": "Returns all 11 sectors with company count and average weekly return."
+              },
+              "response": []
+            },
+            {
+              "name": "Get sector leaders",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/sector-leaders", "host": ["{{node_url}}"], "path": ["api","sector-leaders"] },
+                "description": "Returns the highest-priced company in each sector."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Market Overview",
+          "item": [
+            {
+              "name": "Market overview",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{node_url}}/api/market-overview", "host": ["{{node_url}}"], "path": ["api","market-overview"] },
+                "description": "Returns platform-wide stats: total companies, average weekly return, companies per country."
+              },
+              "response": []
+            },
+            {
+              "name": "Top movers — up (default)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/top-movers?count=5&direction=up",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","top-movers"],
+                  "query": [
+                    { "key": "count",     "value": "5",  "description": "Number of results (max 20)" },
+                    { "key": "direction", "value": "up", "description": "up | down" }
+                  ]
+                },
+                "description": "Returns top N companies by weekly return. direction=up for gainers, direction=down for losers."
+              },
+              "response": []
+            },
+            {
+              "name": "Top movers — down",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/top-movers?count=5&direction=down",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","top-movers"],
+                  "query": [
+                    { "key": "count",     "value": "5",    "description": "Number of results (max 20)" },
+                    { "key": "direction", "value": "down", "description": "up | down" }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Macro Indicators",
+          "item": [
+            {
+              "name": "Macro — Japan",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/macros?country=Japan",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","macros"],
+                  "query": [{ "key": "country", "value": "Japan", "description": "Country name (Japan, China, India, Singapore, Thailand, Indonesia, Malaysia, Saudi Arabia, South Korea, Taiwan)" }]
+                },
+                "description": "Returns GDP, population, unemployment rate from World Bank API. Supported: Japan, China, India, Singapore, Thailand, Indonesia, Malaysia, Saudi Arabia, South Korea, Taiwan."
+              },
+              "response": []
+            },
+            {
+              "name": "Macro — South Korea",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/macros?country=South Korea",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","macros"],
+                  "query": [{ "key": "country", "value": "South Korea" }]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Macro — China",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/macros?country=China",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","macros"],
+                  "query": [{ "key": "country", "value": "China" }]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Price History",
+          "item": [
+            {
+              "name": "History — Alibaba (9988.HK) 1y",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/history/9988.HK?period=1y",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","history","9988.HK"],
+                  "query": [{ "key": "period", "value": "1y", "description": "3m | 6m | 1y | 2y" }]
+                },
+                "description": "Returns OHLCV daily price history for a ticker from PostgreSQL. period: 3m (90d), 6m (180d), 1y (365d), 2y (730d)."
+              },
+              "response": []
+            },
+            {
+              "name": "History — Samsung (005930.KS) 2y",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/history/005930.KS?period=2y",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","history","005930.KS"],
+                  "query": [{ "key": "period", "value": "2y" }]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "History — Toyota (7203.T) 6m",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/history/7203.T?period=6m",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","history","7203.T"],
+                  "query": [{ "key": "period", "value": "6m" }]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "History — Tencent (0700.HK) 3m",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/history/0700.HK?period=3m",
+                  "host": ["{{node_url}}"],
+                  "path": ["api","history","0700.HK"],
+                  "query": [{ "key": "period", "value": "3m" }]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Python Analytics API",
+      "item": [
+        {
+          "name": "Health",
+          "item": [
+            {
+              "name": "Analytics health check",
+              "request": {
+                "method": "GET",
+                "url": { "raw": "{{python_url}}/health", "host": ["{{python_url}}"], "path": ["health"] },
+                "description": "Returns {\"status\": \"ok\"} if the FastAPI service is running."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Summary Statistics",
+          "item": [
+            {
+              "name": "Summary — by country (Japan)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/summary?country=Japan",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","summary"],
+                  "query": [{ "key": "country", "value": "Japan", "description": "Filter by country name" }]
+                },
+                "description": "Returns mean, median, std, min, max for latest close price and 5-day weekly return across all companies in the group. Filter by country OR sector (or neither for all)."
+              },
+              "response": []
+            },
+            {
+              "name": "Summary — by sector (Financials)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/summary?sector=Financials",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","summary"],
+                  "query": [{ "key": "sector", "value": "Financials", "description": "Filter by sector name" }]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Summary — all companies",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/summary",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","summary"]
+                },
+                "description": "No filters — returns stats across all 272 companies."
+              },
+              "response": []
+            },
+            {
+              "name": "Summary — country + sector (South Korea, IT)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/summary?country=South Korea&sector=Information Technology",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","summary"],
+                  "query": [
+                    { "key": "country", "value": "South Korea" },
+                    { "key": "sector",  "value": "Information Technology" }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Rolling Average",
+          "item": [
+            {
+              "name": "Rolling — Alibaba (9988.HK) MA30 1y",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/rolling/9988.HK?window=30&period=1y",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","rolling","9988.HK"],
+                  "query": [
+                    { "key": "window", "value": "30",  "description": "Rolling window in trading days (2–200)" },
+                    { "key": "period", "value": "1y",  "description": "3m | 6m | 1y | 2y" }
+                  ]
+                },
+                "description": "Returns daily close prices + N-day rolling moving average. Each row: {date, close, maN}."
+              },
+              "response": []
+            },
+            {
+              "name": "Rolling — Samsung (005930.KS) MA7 6m",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/rolling/005930.KS?window=7&period=6m",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","rolling","005930.KS"],
+                  "query": [
+                    { "key": "window", "value": "7"  },
+                    { "key": "period", "value": "6m" }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Rolling — Toyota (7203.T) MA30 2y",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/rolling/7203.T?window=30&period=2y",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","rolling","7203.T"],
+                  "query": [
+                    { "key": "window", "value": "30" },
+                    { "key": "period", "value": "2y" }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "ARIMA Forecast",
+          "item": [
+            {
+              "name": "Forecast — Alibaba (9988.HK) 30d",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/forecast/9988.HK?days=30&period=1y",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","forecast","9988.HK"],
+                  "query": [
+                    { "key": "days",   "value": "30", "description": "Forecast horizon in trading days (7–90)" },
+                    { "key": "period", "value": "1y", "description": "History window: 6m | 1y | 2y" }
+                  ]
+                },
+                "description": "Runs ARIMA(1,1,1) on historical close prices and returns forecast with 95% confidence interval.\n\nResponse includes:\n- history: [{date, actual}] — real prices used for training\n- forecast: [{date, predicted, lower, upper}] — N-day prediction with CI\n\nRequires at least 60 rows of history. Raises 422 if insufficient data."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — Samsung (005930.KS) 14d",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/forecast/005930.KS?days=14&period=1y",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","forecast","005930.KS"],
+                  "query": [
+                    { "key": "days",   "value": "14" },
+                    { "key": "period", "value": "1y" }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — Toyota (7203.T) 60d",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/forecast/7203.T?days=60&period=2y",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","forecast","7203.T"],
+                  "query": [
+                    { "key": "days",   "value": "60" },
+                    { "key": "period", "value": "2y" }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — Tencent (0700.HK) 7d",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/forecast/0700.HK?days=7&period=6m",
+                  "host": ["{{python_url}}"],
+                  "path": ["analytics","forecast","0700.HK"],
+                  "query": [
+                    { "key": "days",   "value": "7"  },
+                    { "key": "period", "value": "6m" }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

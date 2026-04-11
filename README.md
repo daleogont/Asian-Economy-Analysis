@@ -1,129 +1,180 @@
-# Asian Economy Analysis
+# Asian Capital Markets Intelligence Platform
 
-A full-stack dashboard for tracking stock market data across 10 Asian economies — Japan, China, India, Thailand, Singapore, South Korea, Malaysia, Indonesia, Taiwan, and Saudi Arabia.
+A full-stack analytical platform for monitoring and forecasting stock market dynamics across 14 Asian economies. Built as a dissertation project combining real financial data, descriptive analytics, and ARIMA-based time-series forecasting.
+
+**Live coverage:** 272 companies · 14 countries · 11 sectors · 2 years of daily price history
 
 ---
 
 ## What it does
 
-- Displays live (or cached) stock prices, weekly returns, and market cap for ~183 companies
-- Groups companies by country and sector
+- Displays latest stock prices and weekly returns for 272 Asian companies
+- Groups companies by country and sector with aggregated statistics
 - Shows macro indicators (GDP, population, unemployment) via World Bank API
-- Includes a research page with curated articles for each country
-- Interactive Asia map, sector leaders, top movers
+- Price history charts with 7-day and 30-day rolling moving averages
+- ARIMA(1,1,1) price forecasting with 95% confidence intervals
+- Summary statistics (mean, median, std dev) per country and sector
+- Weekly return distribution histograms
+- Top movers and sector leaders dashboards
+
+---
+
+## Architecture
+
+```
+Browser (React)
+     │
+     ▼
+Nginx (port 3000)
+  ├── /api/*          → Node.js / Express (port 4000)
+  └── /analytics/*    → Python FastAPI    (port 8000)
+                              │
+                    PostgreSQL (port 5432)
+                    131k+ daily price rows
+```
 
 ---
 
 ## Tech stack
 
-| Layer    | Technology |
-|----------|------------|
-| Frontend | React, Tailwind CSS, Recharts |
-| Backend  | Node.js, Express |
-| Data     | Yahoo Finance (free), Twelve Data (API key), seed fallback |
+| Layer        | Technology                                      |
+|--------------|-------------------------------------------------|
+| Frontend     | React, Tailwind CSS, Recharts                   |
+| API Gateway  | Node.js, Express, node-cron                     |
+| Analytics    | Python 3.10, FastAPI, pandas, numpy, statsmodels|
+| Database     | PostgreSQL 16                                   |
+| Data sources | Yahoo Finance, Twelve Data, World Bank API      |
+| Infra        | Docker, Docker Compose, Nginx                   |
 
 ---
 
-## Setup
+## Quick start
 
-**Requirements:** Node.js 18+
-
-```bash
-# Install server dependencies
-npm install
-
-# Install client dependencies
-npm install --prefix client
-```
-
-Create a `.env` file in the project root:
-
-```
-TWELVE_DATA_KEY=your_api_key_here
-```
-
----
-
-## Running
+**Requirements:** Docker + Docker Compose
 
 ```bash
-npm run dev        # starts both server (port 4000) and client (port 3000)
-npm run server     # server only
-npm run client     # client only
+# Clone and configure
+git clone https://github.com/daleogont/Asian-Economy-Analysis.git
+cd Asian-Economy-Analysis
+cp .env.example .env          # add your TWELVE_DATA_KEY
+
+# Start all services
+docker compose up --build -d
+
+# Apply database schema
+docker compose exec postgres psql -U admin -d asianmarkets \
+  -f /dev/stdin < data/schema.sql
+
+# Seed companies into DB
+docker compose exec node-api node scripts/seedCompanies.js
+
+# Collect 2 years of price history (~30 min for all tickers)
+node scripts/collectHistory.js
 ```
 
 Open `http://localhost:3000`
 
 ---
 
-## How data fetching works
+## Environment variables
 
-The server uses a **3-tier fallback** strategy:
-
-```
-Tier 1 — Yahoo Finance   free, no key required
-    ↓ if 429 or error
-Tier 2 — Twelve Data     requires API key (800 req/day on free tier)
-    ↓ if error
-Tier 3 — Seed / cache    static fallback, always available
-```
-
-On startup, all tickers without live data are queued for background fetching at 1 request per 8 seconds (~25 min for 183 tickers). The website is immediately usable with seed data while the queue runs.
-
-Live data is saved to `data/cache.json` with a 12-hour TTL. On restart, cached data is loaded instantly — usually 0 re-fetches needed.
+| Variable            | Required | Description                                    |
+|---------------------|----------|------------------------------------------------|
+| `TWELVE_DATA_KEY`   | No       | Twelve Data API key (fallback when Yahoo fails)|
+| `POSTGRES_DB`       | Yes      | Database name (default: `asianmarkets`)        |
+| `POSTGRES_USER`     | Yes      | DB user (default: `admin`)                     |
+| `POSTGRES_PASSWORD` | Yes      | DB password (default: `secret`)                |
+| `DATABASE_URL`      | Yes      | Full PostgreSQL connection string              |
+| `PORT`              | No       | Node.js server port (default: `4000`)          |
 
 ---
 
-## API endpoints
+## API reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/companies` | All companies with stock data |
-| GET | `/api/sectors` | Sectors with market weight and weekly return |
-| GET | `/api/countries` | Countries with total market cap and avg return |
-| GET | `/api/top-movers?count=5&direction=up` | Top gaining or losing stocks |
-| GET | `/api/sector-leaders` | Best company per sector by market cap |
-| GET | `/api/market-overview` | Aggregated market stats |
-| GET | `/api/macros?country=Japan` | GDP, population, unemployment (World Bank) |
-| GET | `/api/health` | Server status + cache stats |
+### Node.js API (`/api/*`)
+
+| Method | Endpoint                              | Description                                         |
+|--------|---------------------------------------|-----------------------------------------------------|
+| GET    | `/api/health`                         | Server status and cache statistics                  |
+| GET    | `/api/companies`                      | All 272 companies with latest price and weekly return|
+| GET    | `/api/countries`                      | Aggregated stats per country                        |
+| GET    | `/api/sectors`                        | Aggregated stats per sector                         |
+| GET    | `/api/sector-leaders`                 | Highest-priced company per sector                   |
+| GET    | `/api/market-overview`                | Platform-wide totals                                |
+| GET    | `/api/top-movers?count=5&direction=up`| Top gainers or losers by weekly return              |
+| GET    | `/api/macros?country=Japan`           | GDP, population, unemployment (World Bank)          |
+| GET    | `/api/history/:ticker?period=1y`      | OHLCV history from DB (3m / 6m / 1y / 2y)         |
+
+### Python Analytics API (`/analytics/*`)
+
+| Method | Endpoint                                   | Description                                      |
+|--------|--------------------------------------------|--------------------------------------------------|
+| GET    | `/health`                                  | FastAPI health check                             |
+| GET    | `/analytics/summary?country=&sector=`      | Mean, median, std, min, max for price and return |
+| GET    | `/analytics/rolling/:ticker?window=30`     | Close prices + N-day rolling moving average      |
+| GET    | `/analytics/forecast/:ticker?days=30`      | ARIMA(1,1,1) forecast + 95% confidence interval |
+
+Full API documentation: see `postman_collection.json` and `openapi.yaml` in project root.
+
+---
+
+## Database schema
+
+```sql
+companies    — ticker, name, country, sector, exchange
+daily_prices — ticker, date, open, high, low, close, volume, currency
+forecasts    — ticker, forecast_date, predicted_close, lower_bound, upper_bound, model
+```
 
 ---
 
 ## Project structure
 
 ```
-├── client/               React frontend
+├── analytics/              Python FastAPI service
+│   └── app/
+│       ├── main.py         App entry point + CORS
+│       ├── db.py           SQLAlchemy connection
+│       └── routers/
+│           ├── summary.py  Descriptive statistics
+│           ├── rolling.py  Rolling moving average
+│           └── forecast.py ARIMA forecasting
+├── client/                 React frontend
 │   └── src/
-│       ├── pages/        Home, Countries, Sections, Research, country/*, section/*
-│       └── components/   Shared UI components
-├── server/
-│   ├── controllers/      Request handlers for each route
-│   ├── routes/           Express route definitions
+│       ├── pages/          Home, Countries, Sections, country/*, section/*
+│       └── components/     PriceHistoryChart, ForecastChart, SummaryStats,
+│                           WeeklyReturnHistogram, WeeklyReturnIndicator
+├── server/                 Node.js API
+│   ├── controllers/        Business logic per route
+│   ├── routes/             Express route definitions
 │   └── utils/
-│       ├── dataService.js   3-tier fetch logic + background queue
-│       ├── cacheStore.js    Persistent in-memory cache with seed fallback
-│       └── currencyService.js  USD conversion rates
+│       ├── db.js           PostgreSQL pool
+│       ├── dataService.js  Yahoo Finance / Twelve Data fetcher
+│       ├── deltaFetch.js   Daily incremental price updater
+│       └── stockQueries.js DB query helpers
+├── scripts/
+│   ├── seedCompanies.js    One-time company seeding
+│   └── collectHistory.js   2-year history collection + delta updates
 ├── data/
-│   ├── realCompanies.json   Master list of 183 companies
-│   ├── seed.json            Static price data (fallback)
-│   └── cache.json           Live data written at runtime (gitignored)
-└── .env                     API keys (gitignored)
+│   ├── realCompanies.json  Master company registry (272 companies)
+│   └── schema.sql          PostgreSQL schema
+├── docker-compose.yml
+├── postman_collection.json Full API collection (27 requests)
+└── openapi.yaml            OpenAPI 3.0 spec for analytics API
 ```
-
----
-
-## Environment variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `TWELVE_DATA_KEY` | No | Twelve Data API key. Without it, only Yahoo Finance is used. Free tier: 800 req/day. |
-| `PORT` | No | Server port (default: 4000) |
 
 ---
 
 ## Data sources
 
-- **Yahoo Finance** — free chart API, no key needed
-- **Twelve Data** — [twelvedata.com](https://twelvedata.com), free tier sufficient
-- **World Bank API** — macro indicators, no key needed
-- **seed.json** — manually curated fallback prices, used when both live sources fail
+- **Yahoo Finance** — free OHLCV chart API, no key required
+- **Twelve Data** — fallback source, free tier (800 req/day)
+- **World Bank API** — macro indicators, no key required
+
+---
+
+## Roadmap
+
+- **Stage 1 (current):** Real data, 2y history, ARIMA forecasting, descriptive analytics
+- **Stage 2:** Regression, clustering (K-means), anomaly detection, PostgreSQL migrations, Docker staging
+- **Stage 3:** LSTM deep learning, NLP sentiment (FinBERT), macro integration (World Bank), XGBoost ensemble

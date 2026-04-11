@@ -19,6 +19,7 @@ import RealEstate from "./pages/section/RealEstate";
 import Utilities from "./pages/section/Utilities";
 import Industrials from "./pages/section/Industrials";
 import Consumer from "./pages/section/Consumer";
+import ConsumerStaples from "./pages/section/ConsumerStaples";
 import Materials from "./pages/section/Materials";
 import Communication from "./pages/section/Communication";
 
@@ -33,6 +34,10 @@ import Malaysia from "./pages/country/Malaysia";
 import Taiwan from "./pages/country/Taiwan";
 import SouthKorea from "./pages/country/SouthKorea";
 import SaudiArabia from "./pages/country/SaudiArabia";
+import HongKong from "./pages/country/HongKong";
+import Vietnam from "./pages/country/Vietnam";
+import UAE from "./pages/country/UAE";
+import Pakistan from "./pages/country/Pakistan";
 
 const App = () => {
   const [isServerReady, setIsServerReady] = useState(false);
@@ -68,16 +73,17 @@ const App = () => {
         <Route path="/research" element={<Research />} />
 
         <Route path="/sections" element={<Sections />} />
-        <Route path="/section/finance" element={<Finance />} />
-        <Route path="/section/technology" element={<Technology />} />
+        <Route path="/section/financials" element={<Finance />} />
+        <Route path="/section/information-technology" element={<Technology />} />
         <Route path="/section/energy" element={<Energy />} />
-        <Route path="/section/health" element={<Health />} />
-        <Route path="/section/realestate" element={<RealEstate />} />
+        <Route path="/section/health-care" element={<Health />} />
+        <Route path="/section/real-estate" element={<RealEstate />} />
         <Route path="/section/utilities" element={<Utilities />} />
         <Route path="/section/industrials" element={<Industrials />} />
-        <Route path="/section/consumer" element={<Consumer />} />
+        <Route path="/section/consumer-discretionary" element={<Consumer />} />
+        <Route path="/section/consumer-staples" element={<ConsumerStaples />} />
         <Route path="/section/materials" element={<Materials />} />
-        <Route path="/section/communication" element={<Communication />} />
+        <Route path="/section/communication-services" element={<Communication />} />
 
         <Route path="/countries" element={<Countries />} />
         <Route path="/country/japan" element={<Japan />} />
@@ -88,8 +94,12 @@ const App = () => {
         <Route path="/country/indonesia" element={<Indonesia />} />
         <Route path="/country/malaysia" element={<Malaysia />} />
         <Route path="/country/taiwan" element={<Taiwan />} />
-        <Route path="/country/southkorea" element={<SouthKorea />} />
-        <Route path="/country/saudiarabia" element={<SaudiArabia />} />
+        <Route path="/country/south-korea" element={<SouthKorea />} />
+        <Route path="/country/saudi-arabia" element={<SaudiArabia />} />
+        <Route path="/country/hong-kong" element={<HongKong />} />
+        <Route path="/country/vietnam" element={<Vietnam />} />
+        <Route path="/country/uae" element={<UAE />} />
+        <Route path="/country/pakistan" element={<Pakistan />} />
       </Routes>
 
       <Footer />

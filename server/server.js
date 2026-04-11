@@ -11,9 +11,11 @@ const healthRouter       = require("./routes/health");
 const topMoversRouter    = require("./routes/topMovers");
 const sectorLeadersRouter  = require("./routes/sectorLeaders");
 const marketOverviewRouter = require("./routes/marketOverview");
+const historyRouter        = require("./routes/history");
 
+const cron               = require("node-cron");
 const { prewarmCache }   = require("./utils/dataService");
-const companies          = require("../data/realCompanies.json");
+const { runDeltaFetch }  = require("./utils/deltaFetch");
 
 const app  = express();
 const PORT = require("./config").PORT || 4000;
@@ -29,6 +31,7 @@ app.use("/api/top-movers",       topMoversRouter);
 app.use("/api/sector-leaders",   sectorLeadersRouter);
 app.use("/api/market-overview",  marketOverviewRouter);
 app.use("/api/health",           healthRouter);
+app.use("/api/history",          historyRouter);
 
 // Serve React build in production
 if (process.env.NODE_ENV === "production") {
@@ -46,6 +49,13 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
-  // Pre-warm runs in background — server is already accepting requests
-  prewarmCache(companies).catch(console.error);
+  prewarmCache().catch(console.error);
+  runDeltaFetch().catch(console.error);
+
+  // Auto-refresh prices every day at 23:30 UTC
+  cron.schedule("30 23 * * *", () => {
+    console.log("🕐 Cron: starting daily delta fetch...");
+    runDeltaFetch().catch(console.error);
+  });
+  console.log("⏰ Daily price refresh scheduled at 23:30 UTC");
 });

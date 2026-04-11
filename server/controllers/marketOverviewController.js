@@ -1,53 +1,32 @@
-// server/controllers/marketOverviewController.js
-const path = require("path");
-const fs   = require("fs");
-const { getCache } = require("../utils/cacheStore");
+const { getAllLatestPrices } = require("../utils/stockQueries");
 
-const companiesPath = path.join(__dirname, "../../data/realCompanies.json");
+const getMarketOverview = async (req, res) => {
+  try {
+    const prices    = await getAllLatestPrices();
+    const byCountry = {};
+    let returns = [], count = 0;
 
-const getMarketOverview = (req, res) => {
-  const companies = JSON.parse(fs.readFileSync(companiesPath, "utf-8"));
-  const cache     = getCache();
+    for (const p of Object.values(prices)) {
+      if (!p.price) continue;
 
-  let totalMarketCap  = 0;
-  let totalReturn     = 0;
-  let totalStockPrice = 0;
-  let count           = 0;
-  const byCountry     = {};
+      count++;
+      if (p.weekly_return !== null) returns.push(Number(p.weekly_return));
 
-  companies.forEach((company) => {
-    const data = cache.get(company.ticker);
-    if (
-      !data ||
-      typeof data.stockPrice    !== "number" ||
-      typeof data.previousClose !== "number"
-    ) return;
-
-    const cap = data.marketCap ?? 0;
-    const weeklyReturn =
-      typeof data.weeklyReturn === "number"
-        ? data.weeklyReturn
-        : ((data.stockPrice - data.previousClose) / data.previousClose) * 100;
-
-    totalMarketCap  += cap;
-    totalReturn     += weeklyReturn;
-    totalStockPrice += data.stockPrice;
-    count++;
-
-    if (!byCountry[company.country]) {
-      byCountry[company.country] = { marketCap: 0, companies: 0 };
+      if (!byCountry[p.country]) byCountry[p.country] = { companies: 0 };
+      byCountry[p.country].companies++;
     }
-    byCountry[company.country].marketCap += cap;
-    byCountry[company.country].companies++;
-  });
 
-  res.json({
-    totalMarketCap,
-    avgWeeklyReturn: count ? totalReturn     / count : null,
-    avgStockPrice:   count ? totalStockPrice / count : null,
-    countries:       byCountry,
-    totalCompanies:  count,
-  });
+    res.json({
+      totalCompanies:  count,
+      avgWeeklyReturn: returns.length
+        ? Number((returns.reduce((a, b) => a + b, 0) / returns.length).toFixed(2))
+        : null,
+      countries: byCountry,
+    });
+  } catch (err) {
+    console.error("marketOverviewController error:", err.message);
+    res.status(500).json({ error: "Failed to get market overview" });
+  }
 };
 
 module.exports = { getMarketOverview };

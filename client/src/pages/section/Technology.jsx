@@ -1,5 +1,5 @@
 import SectionPage from "../../components/SectionPage";
 
-export default function Technology() {
-  return <SectionPage sector="Technology"/>;
+export default function InformationTechnology() {
+  return <SectionPage sector="Information Technology" />;
 }

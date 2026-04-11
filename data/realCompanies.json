@@ -1,194 +1,1906 @@
 [
-  { "name": "Mitsubishi UFJ Financial Group", "ticker": "8306.T", "country": "Japan", "sector": "Finance" },
-  { "name": "Sumitomo Mitsui Trust Holdings", "ticker": "8309.T", "country": "Japan", "sector": "Finance" },
-  { "name": "Sony Group", "ticker": "6758.T", "country": "Japan", "sector": "Technology" },
-  { "name": "SoftBank Group", "ticker": "9984.T", "country": "Japan", "sector": "Technology" },
-  { "name": "ENEOS Holdings", "ticker": "5020.T", "country": "Japan", "sector": "Energy" },
-  { "name": "INPEX Corporation", "ticker": "1605.T", "country": "Japan", "sector": "Energy" },
-  { "name": "Takeda Pharmaceutical", "ticker": "4502.T", "country": "Japan", "sector": "Health" },
-  { "name": "Astellas Pharma", "ticker": "4503.T", "country": "Japan", "sector": "Health" },
-  { "name": "Mitsui Fudosan", "ticker": "8801.T", "country": "Japan", "sector": "Real Estate" },
-  { "name": "Sumitomo Realty & Development", "ticker": "8830.T", "country": "Japan", "sector": "Real Estate" },
-  { "name": "Toyota Motor", "ticker": "7203.T", "country": "Japan", "sector": "Consumer" },
-  { "name": "Fast Retailing", "ticker": "9983.T", "country": "Japan", "sector": "Consumer" },
-  { "name": "Mitsubishi Heavy Industries", "ticker": "7011.T", "country": "Japan", "sector": "Industrials" },
-  { "name": "Hitachi", "ticker": "6501.T", "country": "Japan", "sector": "Industrials" },
-  { "name": "Nippon Telegraph and Telephone", "ticker": "9432.T", "country": "Japan", "sector": "Communication" },
-  { "name": "KDDI Corporation", "ticker": "9433.T", "country": "Japan", "sector": "Communication" },
-  { "name": "Sumitomo Chemical", "ticker": "4005.T", "country": "Japan", "sector": "Materials" },
-  { "name": "Shin-Etsu Chemical", "ticker": "4063.T", "country": "Japan", "sector": "Materials" },
-  { "name": "Tokyo Electric Power", "ticker": "9501.T", "country": "Japan", "sector": "Utilities" },
-  { "name": "Kansai Electric Power", "ticker": "9503.T", "country": "Japan", "sector": "Utilities" },
-
-  { "name": "Bank of China", "ticker": "3988.HK", "country": "China", "sector": "Finance" },
-  { "name": "China Construction Bank", "ticker": "0939.HK", "country": "China", "sector": "Finance" },
-  { "name": "Tencent Holdings", "ticker": "0700.HK", "country": "China", "sector": "Technology" },
-  { "name": "Meituan", "ticker": "3690.HK", "country": "China", "sector": "Technology" },
-  { "name": "PetroChina", "ticker": "0857.HK", "country": "China", "sector": "Energy" },
-  { "name": "CNOOC Limited", "ticker": "0883.HK", "country": "China", "sector": "Energy" },
-  { "name": "Sinopharm Group", "ticker": "1099.HK", "country": "China", "sector": "Health" },
-  { "name": "China Medical System Holdings", "ticker": "0867.HK", "country": "China", "sector": "Health" },
-  { "name": "China Overseas Land & Investment", "ticker": "0688.HK", "country": "China", "sector": "Real Estate" },
-  { "name": "China Resources Land", "ticker": "1109.HK", "country": "China", "sector": "Real Estate" },
-  { "name": "Alibaba Group", "ticker": "9988.HK", "country": "China", "sector": "Consumer" },
-  { "name": "JD.com", "ticker": "9618.HK", "country": "China", "sector": "Consumer" },
-  { "name": "China State Construction Engineering", "ticker": "601668.SS", "country": "China", "sector": "Industrials" },
-  { "name": "CRRC Corporation", "ticker": "1766.HK", "country": "China", "sector": "Industrials" },
-  { "name": "China Mobile", "ticker": "0941.HK", "country": "China", "sector": "Communication" },
-  { "name": "China Telecom", "ticker": "0728.HK", "country": "China", "sector": "Communication" },
-  { "name": "Anhui Conch Cement", "ticker": "0914.HK", "country": "China", "sector": "Materials" },
-  { "name": "China Shenhua Energy", "ticker": "1088.HK", "country": "China", "sector": "Materials" },
-  { "name": "China Yangtze Power", "ticker": "600900.SS", "country": "China", "sector": "Utilities" },
-  { "name": "CGN Power", "ticker": "1816.HK", "country": "China", "sector": "Utilities" },
-
-  { "name": "HDFC Bank", "ticker": "HDFCBANK.NS", "country": "India", "sector": "Finance" },
-  { "name": "ICICI Bank", "ticker": "ICICIBANK.NS", "country": "India", "sector": "Finance" },
-  { "name": "Infosys", "ticker": "INFY.NS", "country": "India", "sector": "Technology" },
-  { "name": "Tata Consultancy Services", "ticker": "TCS.NS", "country": "India", "sector": "Technology" },
-  { "name": "Reliance Industries", "ticker": "RELIANCE.NS", "country": "India", "sector": "Energy" },
-  { "name": "ONGC", "ticker": "ONGC.NS", "country": "India", "sector": "Energy" },
-  { "name": "Sun Pharmaceutical", "ticker": "SUNPHARMA.NS", "country": "India", "sector": "Health" },
-  { "name": "Apollo Hospitals", "ticker": "APOLLOHOSP.NS", "country": "India", "sector": "Health" },
-  { "name": "DLF", "ticker": "DLF.NS", "country": "India", "sector": "Real Estate" },
-  { "name": "Godrej Properties", "ticker": "GODREJPROP.NS", "country": "India", "sector": "Real Estate" },
-  { "name": "Hindustan Unilever", "ticker": "HINDUNILVR.NS", "country": "India", "sector": "Consumer" },
-  { "name": "Asian Paints", "ticker": "ASIANPAINT.NS", "country": "India", "sector": "Consumer" },
-  { "name": "Larsen & Toubro", "ticker": "LT.NS", "country": "India", "sector": "Industrials" },
-  { "name": "Bharat Electronics", "ticker": "BEL.NS", "country": "India", "sector": "Industrials" },
-  { "name": "Bharti Airtel", "ticker": "BHARTIARTL.NS", "country": "India", "sector": "Communication" },
-  { "name": "Vodafone Idea", "ticker": "IDEA.NS", "country": "India", "sector": "Communication" },
-  { "name": "Tata Steel", "ticker": "TATASTEEL.NS", "country": "India", "sector": "Materials" },
-  { "name": "UltraTech Cement", "ticker": "ULTRACEMCO.NS", "country": "India", "sector": "Materials" },
-  { "name": "NTPC Limited", "ticker": "NTPC.NS", "country": "India", "sector": "Utilities" },
-  { "name": "Power Grid Corporation", "ticker": "POWERGRID.NS", "country": "India", "sector": "Utilities" },
-
-  { "name": "Bangkok Bank", "ticker": "BBL.BK", "country": "Thailand", "sector": "Finance" },
-  { "name": "Kasikornbank", "ticker": "KBANK.BK", "country": "Thailand", "sector": "Finance" },
-  { "name": "Delta Electronics Thailand", "ticker": "DELTA.BK", "country": "Thailand", "sector": "Technology" },
-  { "name": "Advanced Info Service", "ticker": "ADVANC.BK", "country": "Thailand", "sector": "Technology" },
-  { "name": "PTT Public Company", "ticker": "PTT.BK", "country": "Thailand", "sector": "Energy" },
-  { "name": "Gulf Energy Development", "ticker": "GULF.BK", "country": "Thailand", "sector": "Energy" },
-  { "name": "Bangkok Dusit Medical Services", "ticker": "BDMS.BK", "country": "Thailand", "sector": "Health" },
-  { "name": "Bumrungrad International Hospital", "ticker": "BH.BK", "country": "Thailand", "sector": "Health" },
-  { "name": "Land and Houses Public", "ticker": "LH.BK", "country": "Thailand", "sector": "Real Estate" },
-  { "name": "Central Pattana", "ticker": "CPN.BK", "country": "Thailand", "sector": "Real Estate" },
-  { "name": "CP ALL Public", "ticker": "CPALL.BK", "country": "Thailand", "sector": "Consumer" },
-  { "name": "Thai Beverage", "ticker": "Y92.SI", "country": "Thailand", "sector": "Consumer" },
-  { "name": "Thai Airways International", "ticker": "THAI.BK", "country": "Thailand", "sector": "Industrials" },
-  { "name": "PTT Global Chemical", "ticker": "PTTGC.BK", "country": "Thailand", "sector": "Industrials" },
-  { "name": "True Corporation", "ticker": "TRUE.BK", "country": "Thailand", "sector": "Communication" },
-  { "name": "Intouch Holdings", "ticker": "INTUCH.BK", "country": "Thailand", "sector": "Communication" },
-  { "name": "Siam Cement Group", "ticker": "SCC.BK", "country": "Thailand", "sector": "Materials" },
-  { "name": "Indorama Ventures", "ticker": "IVL.BK", "country": "Thailand", "sector": "Materials" },
-  { "name": "Electricity Generating Public Co", "ticker": "EGCO.BK", "country": "Thailand", "sector": "Utilities" },
-  { "name": "Ratch Group", "ticker": "RATCH.BK", "country": "Thailand", "sector": "Utilities" },
-
-  { "name": "DBS Group", "ticker": "D05.SI", "country": "Singapore", "sector": "Finance" },
-  { "name": "Oversea-Chinese Banking Corp", "ticker": "O39.SI", "country": "Singapore", "sector": "Finance" },
-  { "name": "Sea Limited", "ticker": "SE", "country": "Singapore", "sector": "Technology" },
-  { "name": "Venture Corporation", "ticker": "V03.SI", "country": "Singapore", "sector": "Technology" },
-  { "name": "Sembcorp Industries", "ticker": "U96.SI", "country": "Singapore", "sector": "Energy" },
-  { "name": "Wilmar International", "ticker": "F34.SI", "country": "Singapore", "sector": "Energy" },
-  { "name": "Raffles Medical Group", "ticker": "BSL.SI", "country": "Singapore", "sector": "Health" },
-  { "name": "IHH Healthcare", "ticker": "Q0F.SI", "country": "Singapore", "sector": "Health" },
-  { "name": "Keppel DC REIT", "ticker": "AJBU.SI", "country": "Singapore", "sector": "Real Estate" },
-  { "name": "City Developments", "ticker": "C09.SI", "country": "Singapore", "sector": "Real Estate" },
-  { "name": "Jardine Cycle & Carriage", "ticker": "C07.SI", "country": "Singapore", "sector": "Consumer" },
-  { "name": "Sheng Siong Group", "ticker": "OV8.SI", "country": "Singapore", "sector": "Consumer" },
-  { "name": "SATS Ltd", "ticker": "S58.SI", "country": "Singapore", "sector": "Industrials" },
-  { "name": "Yangzijiang Shipbuilding", "ticker": "BS6.SI", "country": "Singapore", "sector": "Industrials" },
-  { "name": "Singtel", "ticker": "Z74.SI", "country": "Singapore", "sector": "Communication" },
-  { "name": "StarHub", "ticker": "CC3.SI", "country": "Singapore", "sector": "Communication" },
-  { "name": "Singapore Exchange", "ticker": "S68.SI", "country": "Singapore", "sector": "Materials" },
-  { "name": "Golden Agri-Resources", "ticker": "E5H.SI", "country": "Singapore", "sector": "Materials" },
-  { "name": "Keppel Infrastructure Trust", "ticker": "A7RU.SI", "country": "Singapore", "sector": "Utilities" },
-  { "name": "Keppel Corporation", "ticker": "BN4.SI", "country": "Singapore", "sector": "Utilities" },
-
-  { "name": "Bank Central Asia", "ticker": "BBCA.JK", "country": "Indonesia", "sector": "Finance" },
-  { "name": "Bank Rakyat Indonesia", "ticker": "BBRI.JK", "country": "Indonesia", "sector": "Finance" },
-  { "name": "GoTo Gojek Tokopedia", "ticker": "GOTO.JK", "country": "Indonesia", "sector": "Technology" },
-  { "name": "Bukalapak", "ticker": "BUKA.JK", "country": "Indonesia", "sector": "Technology" },
-  { "name": "Adaro Energy", "ticker": "ADRO.JK", "country": "Indonesia", "sector": "Energy" },
-  { "name": "Perusahaan Gas Negara", "ticker": "PGAS.JK", "country": "Indonesia", "sector": "Energy" },
-  { "name": "Kalbe Farma", "ticker": "KLBF.JK", "country": "Indonesia", "sector": "Health" },
-  { "name": "Sido Muncul", "ticker": "SIDO.JK", "country": "Indonesia", "sector": "Health" },
-  { "name": "Pakuwon Jati", "ticker": "PWON.JK", "country": "Indonesia", "sector": "Real Estate" },
-  { "name": "BSDE", "ticker": "BSDE.JK", "country": "Indonesia", "sector": "Real Estate" },
-  { "name": "Unilever Indonesia", "ticker": "UNVR.JK", "country": "Indonesia", "sector": "Consumer" },
-  { "name": "Indofood Sukses Makmur", "ticker": "INDF.JK", "country": "Indonesia", "sector": "Consumer" },
-  { "name": "United Tractors", "ticker": "UNTR.JK", "country": "Indonesia", "sector": "Industrials" },
-  { "name": "Wijaya Karya", "ticker": "WIKA.JK", "country": "Indonesia", "sector": "Industrials" },
-  { "name": "Telkom Indonesia", "ticker": "TLKM.JK", "country": "Indonesia", "sector": "Communication" },
-  { "name": "Indosat Ooredoo Hutchison", "ticker": "ISAT.JK", "country": "Indonesia", "sector": "Communication" },
-  { "name": "Indocement Tunggal Prakarsa", "ticker": "INTP.JK", "country": "Indonesia", "sector": "Materials" },
-  { "name": "Semen Indonesia", "ticker": "SMGR.JK", "country": "Indonesia", "sector": "Materials" },
-  { "name": "Toba Bara Sejahtra", "ticker": "TOBA.JK", "country": "Indonesia", "sector": "Utilities" },
-  { "name": "Cikarang Listrindo", "ticker": "POWR.JK", "country": "Indonesia", "sector": "Utilities" },
-
-  { "name": "Maybank", "ticker": "1155.KL", "country": "Malaysia", "sector": "Finance" },
-  { "name": "Public Bank", "ticker": "1295.KL", "country": "Malaysia", "sector": "Finance" },
-  { "name": "Time dotCom", "ticker": "5031.KL", "country": "Malaysia", "sector": "Technology" },
-  { "name": "Inari Amertron", "ticker": "0166.KL", "country": "Malaysia", "sector": "Technology" },
-  { "name": "Petronas Chemicals Group", "ticker": "5183.KL", "country": "Malaysia", "sector": "Energy" },
-  { "name": "Petronas Gas", "ticker": "6033.KL", "country": "Malaysia", "sector": "Energy" },
-  { "name": "KPJ Healthcare", "ticker": "5878.KL", "country": "Malaysia", "sector": "Health" },
-  { "name": "IHH Healthcare Malaysia", "ticker": "5225.KL", "country": "Malaysia", "sector": "Health" },
-  { "name": "S P Setia", "ticker": "8664.KL", "country": "Malaysia", "sector": "Real Estate" },
-  { "name": "Sunway", "ticker": "5211.KL", "country": "Malaysia", "sector": "Real Estate" },
-  { "name": "Nestle Malaysia", "ticker": "4707.KL", "country": "Malaysia", "sector": "Consumer" },
-  { "name": "Berjaya Food", "ticker": "5196.KL", "country": "Malaysia", "sector": "Consumer" },
-  { "name": "Sime Darby", "ticker": "4197.KL", "country": "Malaysia", "sector": "Industrials" },
-  { "name": "Malayan Cement", "ticker": "3794.KL", "country": "Malaysia", "sector": "Industrials" },
-  { "name": "Axiata Group", "ticker": "6888.KL", "country": "Malaysia", "sector": "Communication" },
-  { "name": "Maxis", "ticker": "6012.KL", "country": "Malaysia", "sector": "Communication" },
-  { "name": "Press Metal Aluminium", "ticker": "8869.KL", "country": "Malaysia", "sector": "Materials" },
-  { "name": "Kossan Rubber Industries", "ticker": "7153.KL", "country": "Malaysia", "sector": "Materials" },
-  { "name": "Tenaga Nasional", "ticker": "5347.KL", "country": "Malaysia", "sector": "Utilities" },
-  { "name": "YTL Power International", "ticker": "6742.KL", "country": "Malaysia", "sector": "Utilities" },
-
-  { "name": "Al Rajhi Bank", "ticker": "1120.SR", "country": "Saudi Arabia", "sector": "Finance" },
-  { "name": "National Commercial Bank", "ticker": "1180.SR", "country": "Saudi Arabia", "sector": "Finance" },
-  { "name": "STC (Saudi Telecom Company)", "ticker": "7010.SR", "country": "Saudi Arabia", "sector": "Technology" },
-  { "name": "Al Moammar Information Systems", "ticker": "7200.SR", "country": "Saudi Arabia", "sector": "Technology" },
-  { "name": "Saudi Aramco", "ticker": "2222.SR", "country": "Saudi Arabia", "sector": "Energy" },
-  { "name": "Advanced Petrochemical", "ticker": "2330.SR", "country": "Saudi Arabia", "sector": "Energy" },
-  { "name": "Saudi German Health", "ticker": "4009.SR", "country": "Saudi Arabia", "sector": "Health" },
-  { "name": "Mouwasat Medical Services", "ticker": "4002.SR", "country": "Saudi Arabia", "sector": "Health" },
-  { "name": "Dar Al Arkan Real Estate", "ticker": "4300.SR", "country": "Saudi Arabia", "sector": "Real Estate" },
-  { "name": "Jabal Omar Development", "ticker": "4250.SR", "country": "Saudi Arabia", "sector": "Real Estate" },
-  { "name": "Savola Group", "ticker": "2050.SR", "country": "Saudi Arabia", "sector": "Consumer" },
-  { "name": "Almarai", "ticker": "2280.SR", "country": "Saudi Arabia", "sector": "Consumer" },
-  { "name": "Saudi Arabian Mining (Ma'aden)", "ticker": "1211.SR", "country": "Saudi Arabia", "sector": "Industrials" },
-  { "name": "Bahri (National Shipping)", "ticker": "4030.SR", "country": "Saudi Arabia", "sector": "Industrials" },
-  { "name": "Mobily", "ticker": "7020.SR", "country": "Saudi Arabia", "sector": "Communication" },
-  { "name": "Zain KSA", "ticker": "7030.SR", "country": "Saudi Arabia", "sector": "Communication" },
-  { "name": "SABIC", "ticker": "2010.SR", "country": "Saudi Arabia", "sector": "Materials" },
-  { "name": "Tasnee", "ticker": "2060.SR", "country": "Saudi Arabia", "sector": "Materials" },
-  { "name": "Saudi Electricity Company", "ticker": "5110.SR", "country": "Saudi Arabia", "sector": "Utilities" },
-  { "name": "ACWA Power", "ticker": "2082.SR", "country": "Saudi Arabia", "sector": "Utilities" },
-
-  { "name": "Hana Financial Group", "ticker": "086790.KS", "country": "South Korea", "sector": "Finance" },
-  { "name": "Woori Financial Group", "ticker": "316140.KS", "country": "South Korea", "sector": "Finance" },
-  { "name": "Samsung Electronics", "ticker": "005930.KS", "country": "South Korea", "sector": "Technology" },
-  { "name": "SK Hynix", "ticker": "000660.KS", "country": "South Korea", "sector": "Technology" },
-  { "name": "NAVER Corporation", "ticker": "035420.KS", "country": "South Korea", "sector": "Technology" },
-  { "name": "LG Corp", "ticker": "003550.KS", "country": "South Korea", "sector": "Consumer" },
-  { "name": "Hyundai Motor", "ticker": "005380.KS", "country": "South Korea", "sector": "Consumer" },
-  { "name": "Celltrion", "ticker": "068270.KS", "country": "South Korea", "sector": "Health" },
-  { "name": "Samsung Biologics", "ticker": "207940.KS", "country": "South Korea", "sector": "Health" },
-  { "name": "POSCO Holdings", "ticker": "005490.KS", "country": "South Korea", "sector": "Materials" },
-  { "name": "CJ Logistics", "ticker": "000120.KS", "country": "South Korea", "sector": "Industrials" },
-  { "name": "KT Corporation", "ticker": "030200.KS", "country": "South Korea", "sector": "Communication" },
-  { "name": "Korea Electric Power Corp", "ticker": "015760.KS", "country": "South Korea", "sector": "Utilities" },
-
-  { "name": "Fubon Financial", "ticker": "2881.TW", "country": "Taiwan", "sector": "Finance" },
-  { "name": "TSMC", "ticker": "2330.TW", "country": "Taiwan", "sector": "Technology" },
-  { "name": "MediaTek", "ticker": "2454.TW", "country": "Taiwan", "sector": "Technology" },
-  { "name": "Formosa Petrochemical", "ticker": "6505.TW", "country": "Taiwan", "sector": "Energy" },
-  { "name": "Formosa Biomedical Technology", "ticker": "4743.TWO", "country": "Taiwan", "sector": "Health" },
-  { "name": "Cathay Real Estate Development", "ticker": "2501.TW", "country": "Taiwan", "sector": "Real Estate" },
-  { "name": "Hon Hai Precision (Foxconn)", "ticker": "2317.TW", "country": "Taiwan", "sector": "Industrials" },
-  { "name": "Taiwan Mobile", "ticker": "3045.TW", "country": "Taiwan", "sector": "Communication" },
-  { "name": "Taiwan Cement", "ticker": "1101.TW", "country": "Taiwan", "sector": "Materials" },
-  { "name": "Taiwan Power Company", "ticker": "9902.TW", "country": "Taiwan", "sector": "Utilities" }
+  {
+    "name": "Mitsubishi UFJ Financial Group",
+    "ticker": "8306.T",
+    "country": "Japan",
+    "sector": "Financials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Sumitomo Mitsui Trust Holdings",
+    "ticker": "8309.T",
+    "country": "Japan",
+    "sector": "Financials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Sony Group",
+    "ticker": "6758.T",
+    "country": "Japan",
+    "sector": "Information Technology",
+    "exchange": "TSE"
+  },
+  {
+    "name": "SoftBank Group",
+    "ticker": "9984.T",
+    "country": "Japan",
+    "sector": "Information Technology",
+    "exchange": "TSE"
+  },
+  {
+    "name": "ENEOS Holdings",
+    "ticker": "5020.T",
+    "country": "Japan",
+    "sector": "Energy",
+    "exchange": "TSE"
+  },
+  {
+    "name": "INPEX Corporation",
+    "ticker": "1605.T",
+    "country": "Japan",
+    "sector": "Energy",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Takeda Pharmaceutical",
+    "ticker": "4502.T",
+    "country": "Japan",
+    "sector": "Health Care",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Astellas Pharma",
+    "ticker": "4503.T",
+    "country": "Japan",
+    "sector": "Health Care",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Mitsui Fudosan",
+    "ticker": "8801.T",
+    "country": "Japan",
+    "sector": "Real Estate",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Sumitomo Realty & Development",
+    "ticker": "8830.T",
+    "country": "Japan",
+    "sector": "Real Estate",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Toyota Motor",
+    "ticker": "7203.T",
+    "country": "Japan",
+    "sector": "Consumer Discretionary",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Fast Retailing",
+    "ticker": "9983.T",
+    "country": "Japan",
+    "sector": "Consumer Discretionary",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Mitsubishi Heavy Industries",
+    "ticker": "7011.T",
+    "country": "Japan",
+    "sector": "Industrials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Hitachi",
+    "ticker": "6501.T",
+    "country": "Japan",
+    "sector": "Industrials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Nippon Telegraph and Telephone",
+    "ticker": "9432.T",
+    "country": "Japan",
+    "sector": "Communication Services",
+    "exchange": "TSE"
+  },
+  {
+    "name": "KDDI Corporation",
+    "ticker": "9433.T",
+    "country": "Japan",
+    "sector": "Communication Services",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Sumitomo Chemical",
+    "ticker": "4005.T",
+    "country": "Japan",
+    "sector": "Materials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Shin-Etsu Chemical",
+    "ticker": "4063.T",
+    "country": "Japan",
+    "sector": "Materials",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Tokyo Electric Power",
+    "ticker": "9501.T",
+    "country": "Japan",
+    "sector": "Utilities",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Kansai Electric Power",
+    "ticker": "9503.T",
+    "country": "Japan",
+    "sector": "Utilities",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Bank of China",
+    "ticker": "3988.HK",
+    "country": "China",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Construction Bank",
+    "ticker": "0939.HK",
+    "country": "China",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Tencent Holdings",
+    "ticker": "0700.HK",
+    "country": "China",
+    "sector": "Information Technology",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Meituan",
+    "ticker": "3690.HK",
+    "country": "China",
+    "sector": "Consumer Discretionary",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "PetroChina",
+    "ticker": "0857.HK",
+    "country": "China",
+    "sector": "Energy",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "CNOOC Limited",
+    "ticker": "0883.HK",
+    "country": "China",
+    "sector": "Energy",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Sinopharm Group",
+    "ticker": "1099.HK",
+    "country": "China",
+    "sector": "Health Care",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Medical System Holdings",
+    "ticker": "0867.HK",
+    "country": "China",
+    "sector": "Health Care",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Overseas Land & Investment",
+    "ticker": "0688.HK",
+    "country": "China",
+    "sector": "Real Estate",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Resources Land",
+    "ticker": "1109.HK",
+    "country": "China",
+    "sector": "Real Estate",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Alibaba Group",
+    "ticker": "9988.HK",
+    "country": "China",
+    "sector": "Consumer Discretionary",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "JD.com",
+    "ticker": "9618.HK",
+    "country": "China",
+    "sector": "Consumer Discretionary",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China State Construction Engineering",
+    "ticker": "601668.SS",
+    "country": "China",
+    "sector": "Industrials",
+    "exchange": "SSE"
+  },
+  {
+    "name": "CRRC Corporation",
+    "ticker": "1766.HK",
+    "country": "China",
+    "sector": "Industrials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Mobile",
+    "ticker": "0941.HK",
+    "country": "China",
+    "sector": "Communication Services",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Telecom",
+    "ticker": "0728.HK",
+    "country": "China",
+    "sector": "Communication Services",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Anhui Conch Cement",
+    "ticker": "0914.HK",
+    "country": "China",
+    "sector": "Materials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Shenhua Energy",
+    "ticker": "1088.HK",
+    "country": "China",
+    "sector": "Materials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "China Yangtze Power",
+    "ticker": "600900.SS",
+    "country": "China",
+    "sector": "Utilities",
+    "exchange": "SSE"
+  },
+  {
+    "name": "CGN Power",
+    "ticker": "1816.HK",
+    "country": "China",
+    "sector": "Utilities",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "HDFC Bank",
+    "ticker": "HDFCBANK.NS",
+    "country": "India",
+    "sector": "Financials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "ICICI Bank",
+    "ticker": "ICICIBANK.NS",
+    "country": "India",
+    "sector": "Financials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Infosys",
+    "ticker": "INFY.NS",
+    "country": "India",
+    "sector": "Information Technology",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Tata Consultancy Services",
+    "ticker": "TCS.NS",
+    "country": "India",
+    "sector": "Information Technology",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Reliance Industries",
+    "ticker": "RELIANCE.NS",
+    "country": "India",
+    "sector": "Energy",
+    "exchange": "NSE"
+  },
+  {
+    "name": "ONGC",
+    "ticker": "ONGC.NS",
+    "country": "India",
+    "sector": "Energy",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Sun Pharmaceutical",
+    "ticker": "SUNPHARMA.NS",
+    "country": "India",
+    "sector": "Health Care",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Apollo Hospitals",
+    "ticker": "APOLLOHOSP.NS",
+    "country": "India",
+    "sector": "Health Care",
+    "exchange": "NSE"
+  },
+  {
+    "name": "DLF",
+    "ticker": "DLF.NS",
+    "country": "India",
+    "sector": "Real Estate",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Godrej Properties",
+    "ticker": "GODREJPROP.NS",
+    "country": "India",
+    "sector": "Real Estate",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Hindustan Unilever",
+    "ticker": "HINDUNILVR.NS",
+    "country": "India",
+    "sector": "Consumer Staples",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Asian Paints",
+    "ticker": "ASIANPAINT.NS",
+    "country": "India",
+    "sector": "Consumer Staples",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Larsen & Toubro",
+    "ticker": "LT.NS",
+    "country": "India",
+    "sector": "Industrials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Bharat Electronics",
+    "ticker": "BEL.NS",
+    "country": "India",
+    "sector": "Industrials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Bharti Airtel",
+    "ticker": "BHARTIARTL.NS",
+    "country": "India",
+    "sector": "Communication Services",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Vodafone Idea",
+    "ticker": "IDEA.NS",
+    "country": "India",
+    "sector": "Communication Services",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Tata Steel",
+    "ticker": "TATASTEEL.NS",
+    "country": "India",
+    "sector": "Materials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "UltraTech Cement",
+    "ticker": "ULTRACEMCO.NS",
+    "country": "India",
+    "sector": "Materials",
+    "exchange": "NSE"
+  },
+  {
+    "name": "NTPC Limited",
+    "ticker": "NTPC.NS",
+    "country": "India",
+    "sector": "Utilities",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Power Grid Corporation",
+    "ticker": "POWERGRID.NS",
+    "country": "India",
+    "sector": "Utilities",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Bangkok Bank",
+    "ticker": "BBL.BK",
+    "country": "Thailand",
+    "sector": "Financials",
+    "exchange": "SET"
+  },
+  {
+    "name": "Kasikornbank",
+    "ticker": "KBANK.BK",
+    "country": "Thailand",
+    "sector": "Financials",
+    "exchange": "SET"
+  },
+  {
+    "name": "Delta Electronics Thailand",
+    "ticker": "DELTA.BK",
+    "country": "Thailand",
+    "sector": "Information Technology",
+    "exchange": "SET"
+  },
+  {
+    "name": "PTT Public Company",
+    "ticker": "PTT.BK",
+    "country": "Thailand",
+    "sector": "Energy",
+    "exchange": "SET"
+  },
+  {
+    "name": "Gulf Energy Development",
+    "ticker": "GULF.BK",
+    "country": "Thailand",
+    "sector": "Energy",
+    "exchange": "SET"
+  },
+  {
+    "name": "Bangkok Dusit Medical Services",
+    "ticker": "BDMS.BK",
+    "country": "Thailand",
+    "sector": "Health Care",
+    "exchange": "SET"
+  },
+  {
+    "name": "Bumrungrad International Hospital",
+    "ticker": "BH.BK",
+    "country": "Thailand",
+    "sector": "Health Care",
+    "exchange": "SET"
+  },
+  {
+    "name": "Land and Houses Public",
+    "ticker": "LH.BK",
+    "country": "Thailand",
+    "sector": "Real Estate",
+    "exchange": "SET"
+  },
+  {
+    "name": "Central Pattana",
+    "ticker": "CPN.BK",
+    "country": "Thailand",
+    "sector": "Real Estate",
+    "exchange": "SET"
+  },
+  {
+    "name": "CP ALL Public",
+    "ticker": "CPALL.BK",
+    "country": "Thailand",
+    "sector": "Consumer Staples",
+    "exchange": "SET"
+  },
+  {
+    "name": "Thai Beverage",
+    "ticker": "Y92.SI",
+    "country": "Thailand",
+    "sector": "Consumer Staples",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Thai Airways International",
+    "ticker": "THAI.BK",
+    "country": "Thailand",
+    "sector": "Industrials",
+    "exchange": "SET"
+  },
+  {
+    "name": "PTT Global Chemical",
+    "ticker": "PTTGC.BK",
+    "country": "Thailand",
+    "sector": "Materials",
+    "exchange": "SET"
+  },
+  {
+    "name": "True Corporation",
+    "ticker": "TRUE.BK",
+    "country": "Thailand",
+    "sector": "Communication Services",
+    "exchange": "SET"
+  },
+  {
+    "name": "Siam Cement Group",
+    "ticker": "SCC.BK",
+    "country": "Thailand",
+    "sector": "Materials",
+    "exchange": "SET"
+  },
+  {
+    "name": "Indorama Ventures",
+    "ticker": "IVL.BK",
+    "country": "Thailand",
+    "sector": "Materials",
+    "exchange": "SET"
+  },
+  {
+    "name": "Electricity Generating Public Co",
+    "ticker": "EGCO.BK",
+    "country": "Thailand",
+    "sector": "Utilities",
+    "exchange": "SET"
+  },
+  {
+    "name": "Ratch Group",
+    "ticker": "RATCH.BK",
+    "country": "Thailand",
+    "sector": "Utilities",
+    "exchange": "SET"
+  },
+  {
+    "name": "DBS Group",
+    "ticker": "D05.SI",
+    "country": "Singapore",
+    "sector": "Financials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Oversea-Chinese Banking Corp",
+    "ticker": "O39.SI",
+    "country": "Singapore",
+    "sector": "Financials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Sea Limited",
+    "ticker": "SE",
+    "country": "Singapore",
+    "sector": "Consumer Discretionary",
+    "exchange": "NYSE"
+  },
+  {
+    "name": "Venture Corporation",
+    "ticker": "V03.SI",
+    "country": "Singapore",
+    "sector": "Information Technology",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Sembcorp Industries",
+    "ticker": "U96.SI",
+    "country": "Singapore",
+    "sector": "Energy",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Wilmar International",
+    "ticker": "F34.SI",
+    "country": "Singapore",
+    "sector": "Consumer Staples",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Raffles Medical Group",
+    "ticker": "BSL.SI",
+    "country": "Singapore",
+    "sector": "Health Care",
+    "exchange": "SGX"
+  },
+  {
+    "name": "IHH Healthcare",
+    "ticker": "Q0F.SI",
+    "country": "Singapore",
+    "sector": "Health Care",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Keppel DC REIT",
+    "ticker": "AJBU.SI",
+    "country": "Singapore",
+    "sector": "Real Estate",
+    "exchange": "SGX"
+  },
+  {
+    "name": "City Developments",
+    "ticker": "C09.SI",
+    "country": "Singapore",
+    "sector": "Real Estate",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Jardine Cycle & Carriage",
+    "ticker": "C07.SI",
+    "country": "Singapore",
+    "sector": "Consumer Discretionary",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Sheng Siong Group",
+    "ticker": "OV8.SI",
+    "country": "Singapore",
+    "sector": "Consumer Staples",
+    "exchange": "SGX"
+  },
+  {
+    "name": "SATS Ltd",
+    "ticker": "S58.SI",
+    "country": "Singapore",
+    "sector": "Industrials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Yangzijiang Shipbuilding",
+    "ticker": "BS6.SI",
+    "country": "Singapore",
+    "sector": "Industrials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Singtel",
+    "ticker": "Z74.SI",
+    "country": "Singapore",
+    "sector": "Communication Services",
+    "exchange": "SGX"
+  },
+  {
+    "name": "StarHub",
+    "ticker": "CC3.SI",
+    "country": "Singapore",
+    "sector": "Communication Services",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Singapore Exchange",
+    "ticker": "S68.SI",
+    "country": "Singapore",
+    "sector": "Financials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Golden Agri-Resources",
+    "ticker": "E5H.SI",
+    "country": "Singapore",
+    "sector": "Materials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Keppel Infrastructure Trust",
+    "ticker": "A7RU.SI",
+    "country": "Singapore",
+    "sector": "Utilities",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Keppel Corporation",
+    "ticker": "BN4.SI",
+    "country": "Singapore",
+    "sector": "Industrials",
+    "exchange": "SGX"
+  },
+  {
+    "name": "Bank Central Asia",
+    "ticker": "BBCA.JK",
+    "country": "Indonesia",
+    "sector": "Financials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Bank Rakyat Indonesia",
+    "ticker": "BBRI.JK",
+    "country": "Indonesia",
+    "sector": "Financials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "GoTo Gojek Tokopedia",
+    "ticker": "GOTO.JK",
+    "country": "Indonesia",
+    "sector": "Information Technology",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Bukalapak",
+    "ticker": "BUKA.JK",
+    "country": "Indonesia",
+    "sector": "Information Technology",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Adaro Energy",
+    "ticker": "ADRO.JK",
+    "country": "Indonesia",
+    "sector": "Energy",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Perusahaan Gas Negara",
+    "ticker": "PGAS.JK",
+    "country": "Indonesia",
+    "sector": "Energy",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Kalbe Farma",
+    "ticker": "KLBF.JK",
+    "country": "Indonesia",
+    "sector": "Health Care",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Sido Muncul",
+    "ticker": "SIDO.JK",
+    "country": "Indonesia",
+    "sector": "Health Care",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Pakuwon Jati",
+    "ticker": "PWON.JK",
+    "country": "Indonesia",
+    "sector": "Real Estate",
+    "exchange": "IDX"
+  },
+  {
+    "name": "BSDE",
+    "ticker": "BSDE.JK",
+    "country": "Indonesia",
+    "sector": "Real Estate",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Unilever Indonesia",
+    "ticker": "UNVR.JK",
+    "country": "Indonesia",
+    "sector": "Consumer Staples",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Indofood Sukses Makmur",
+    "ticker": "INDF.JK",
+    "country": "Indonesia",
+    "sector": "Consumer Staples",
+    "exchange": "IDX"
+  },
+  {
+    "name": "United Tractors",
+    "ticker": "UNTR.JK",
+    "country": "Indonesia",
+    "sector": "Industrials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Wijaya Karya",
+    "ticker": "WIKA.JK",
+    "country": "Indonesia",
+    "sector": "Industrials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Telkom Indonesia",
+    "ticker": "TLKM.JK",
+    "country": "Indonesia",
+    "sector": "Communication Services",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Indosat Ooredoo Hutchison",
+    "ticker": "ISAT.JK",
+    "country": "Indonesia",
+    "sector": "Communication Services",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Indocement Tunggal Prakarsa",
+    "ticker": "INTP.JK",
+    "country": "Indonesia",
+    "sector": "Materials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Semen Indonesia",
+    "ticker": "SMGR.JK",
+    "country": "Indonesia",
+    "sector": "Materials",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Toba Bara Sejahtra",
+    "ticker": "TOBA.JK",
+    "country": "Indonesia",
+    "sector": "Utilities",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Cikarang Listrindo",
+    "ticker": "POWR.JK",
+    "country": "Indonesia",
+    "sector": "Utilities",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Maybank",
+    "ticker": "1155.KL",
+    "country": "Malaysia",
+    "sector": "Financials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Public Bank",
+    "ticker": "1295.KL",
+    "country": "Malaysia",
+    "sector": "Financials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Time dotCom",
+    "ticker": "5031.KL",
+    "country": "Malaysia",
+    "sector": "Information Technology",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Inari Amertron",
+    "ticker": "0166.KL",
+    "country": "Malaysia",
+    "sector": "Information Technology",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Petronas Chemicals Group",
+    "ticker": "5183.KL",
+    "country": "Malaysia",
+    "sector": "Energy",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Petronas Gas",
+    "ticker": "6033.KL",
+    "country": "Malaysia",
+    "sector": "Energy",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "KPJ Healthcare",
+    "ticker": "5878.KL",
+    "country": "Malaysia",
+    "sector": "Health Care",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "IHH Healthcare Malaysia",
+    "ticker": "5225.KL",
+    "country": "Malaysia",
+    "sector": "Health Care",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "S P Setia",
+    "ticker": "8664.KL",
+    "country": "Malaysia",
+    "sector": "Real Estate",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Sunway",
+    "ticker": "5211.KL",
+    "country": "Malaysia",
+    "sector": "Real Estate",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Nestle Malaysia",
+    "ticker": "4707.KL",
+    "country": "Malaysia",
+    "sector": "Consumer Staples",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Berjaya Food",
+    "ticker": "5196.KL",
+    "country": "Malaysia",
+    "sector": "Consumer Staples",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Sime Darby",
+    "ticker": "4197.KL",
+    "country": "Malaysia",
+    "sector": "Industrials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Malayan Cement",
+    "ticker": "3794.KL",
+    "country": "Malaysia",
+    "sector": "Materials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Axiata Group",
+    "ticker": "6888.KL",
+    "country": "Malaysia",
+    "sector": "Communication Services",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Maxis",
+    "ticker": "6012.KL",
+    "country": "Malaysia",
+    "sector": "Communication Services",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Press Metal Aluminium",
+    "ticker": "8869.KL",
+    "country": "Malaysia",
+    "sector": "Materials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Kossan Rubber Industries",
+    "ticker": "7153.KL",
+    "country": "Malaysia",
+    "sector": "Materials",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Tenaga Nasional",
+    "ticker": "5347.KL",
+    "country": "Malaysia",
+    "sector": "Utilities",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "YTL Power International",
+    "ticker": "6742.KL",
+    "country": "Malaysia",
+    "sector": "Utilities",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Al Rajhi Bank",
+    "ticker": "1120.SR",
+    "country": "Saudi Arabia",
+    "sector": "Financials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "National Commercial Bank",
+    "ticker": "1180.SR",
+    "country": "Saudi Arabia",
+    "sector": "Financials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "STC (Saudi Telecom Company)",
+    "ticker": "7010.SR",
+    "country": "Saudi Arabia",
+    "sector": "Communication Services",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Al Moammar Information Systems",
+    "ticker": "7200.SR",
+    "country": "Saudi Arabia",
+    "sector": "Information Technology",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Saudi Aramco",
+    "ticker": "2222.SR",
+    "country": "Saudi Arabia",
+    "sector": "Energy",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Advanced Petrochemical",
+    "ticker": "2330.SR",
+    "country": "Saudi Arabia",
+    "sector": "Materials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Saudi German Health",
+    "ticker": "4009.SR",
+    "country": "Saudi Arabia",
+    "sector": "Health Care",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Mouwasat Medical Services",
+    "ticker": "4002.SR",
+    "country": "Saudi Arabia",
+    "sector": "Health Care",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Dar Al Arkan Real Estate",
+    "ticker": "4300.SR",
+    "country": "Saudi Arabia",
+    "sector": "Real Estate",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Jabal Omar Development",
+    "ticker": "4250.SR",
+    "country": "Saudi Arabia",
+    "sector": "Real Estate",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Savola Group",
+    "ticker": "2050.SR",
+    "country": "Saudi Arabia",
+    "sector": "Consumer Staples",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Almarai",
+    "ticker": "2280.SR",
+    "country": "Saudi Arabia",
+    "sector": "Consumer Staples",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Saudi Arabian Mining (Ma'aden)",
+    "ticker": "1211.SR",
+    "country": "Saudi Arabia",
+    "sector": "Materials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Bahri (National Shipping)",
+    "ticker": "4030.SR",
+    "country": "Saudi Arabia",
+    "sector": "Industrials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Mobily",
+    "ticker": "7020.SR",
+    "country": "Saudi Arabia",
+    "sector": "Communication Services",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Zain KSA",
+    "ticker": "7030.SR",
+    "country": "Saudi Arabia",
+    "sector": "Communication Services",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "SABIC",
+    "ticker": "2010.SR",
+    "country": "Saudi Arabia",
+    "sector": "Materials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Tasnee",
+    "ticker": "2060.SR",
+    "country": "Saudi Arabia",
+    "sector": "Materials",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Saudi Electricity Company",
+    "ticker": "5110.SR",
+    "country": "Saudi Arabia",
+    "sector": "Utilities",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "ACWA Power",
+    "ticker": "2082.SR",
+    "country": "Saudi Arabia",
+    "sector": "Utilities",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Hana Financial Group",
+    "ticker": "086790.KS",
+    "country": "South Korea",
+    "sector": "Financials",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Woori Financial Group",
+    "ticker": "316140.KS",
+    "country": "South Korea",
+    "sector": "Financials",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Samsung Electronics",
+    "ticker": "005930.KS",
+    "country": "South Korea",
+    "sector": "Information Technology",
+    "exchange": "KRX"
+  },
+  {
+    "name": "SK Hynix",
+    "ticker": "000660.KS",
+    "country": "South Korea",
+    "sector": "Information Technology",
+    "exchange": "KRX"
+  },
+  {
+    "name": "NAVER Corporation",
+    "ticker": "035420.KS",
+    "country": "South Korea",
+    "sector": "Communication Services",
+    "exchange": "KRX"
+  },
+  {
+    "name": "LG Corp",
+    "ticker": "003550.KS",
+    "country": "South Korea",
+    "sector": "Consumer Discretionary",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Hyundai Motor",
+    "ticker": "005380.KS",
+    "country": "South Korea",
+    "sector": "Consumer Discretionary",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Celltrion",
+    "ticker": "068270.KS",
+    "country": "South Korea",
+    "sector": "Health Care",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Samsung Biologics",
+    "ticker": "207940.KS",
+    "country": "South Korea",
+    "sector": "Health Care",
+    "exchange": "KRX"
+  },
+  {
+    "name": "POSCO Holdings",
+    "ticker": "005490.KS",
+    "country": "South Korea",
+    "sector": "Materials",
+    "exchange": "KRX"
+  },
+  {
+    "name": "CJ Logistics",
+    "ticker": "000120.KS",
+    "country": "South Korea",
+    "sector": "Industrials",
+    "exchange": "KRX"
+  },
+  {
+    "name": "KT Corporation",
+    "ticker": "030200.KS",
+    "country": "South Korea",
+    "sector": "Communication Services",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Korea Electric Power Corp",
+    "ticker": "015760.KS",
+    "country": "South Korea",
+    "sector": "Utilities",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Fubon Financial",
+    "ticker": "2881.TW",
+    "country": "Taiwan",
+    "sector": "Financials",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "TSMC",
+    "ticker": "2330.TW",
+    "country": "Taiwan",
+    "sector": "Information Technology",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "MediaTek",
+    "ticker": "2454.TW",
+    "country": "Taiwan",
+    "sector": "Information Technology",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Formosa Petrochemical",
+    "ticker": "6505.TW",
+    "country": "Taiwan",
+    "sector": "Energy",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Formosa Biomedical Technology",
+    "ticker": "4743.TWO",
+    "country": "Taiwan",
+    "sector": "Health Care",
+    "exchange": "TPEX"
+  },
+  {
+    "name": "Cathay Real Estate Development",
+    "ticker": "2501.TW",
+    "country": "Taiwan",
+    "sector": "Real Estate",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Hon Hai Precision (Foxconn)",
+    "ticker": "2317.TW",
+    "country": "Taiwan",
+    "sector": "Industrials",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Taiwan Mobile",
+    "ticker": "3045.TW",
+    "country": "Taiwan",
+    "sector": "Communication Services",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Taiwan Cement",
+    "ticker": "1101.TW",
+    "country": "Taiwan",
+    "sector": "Materials",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Taiwan Power Company",
+    "ticker": "9902.TW",
+    "country": "Taiwan",
+    "sector": "Utilities",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "CK Hutchison Holdings",
+    "ticker": "0001.HK",
+    "country": "Hong Kong",
+    "sector": "Industrials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "AIA Group",
+    "ticker": "1299.HK",
+    "country": "Hong Kong",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Hong Kong Exchanges and Clearing",
+    "ticker": "0388.HK",
+    "country": "Hong Kong",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Sun Hung Kai Properties",
+    "ticker": "0016.HK",
+    "country": "Hong Kong",
+    "sector": "Real Estate",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "HSBC Holdings",
+    "ticker": "0005.HK",
+    "country": "Hong Kong",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "CLP Holdings",
+    "ticker": "0002.HK",
+    "country": "Hong Kong",
+    "sector": "Utilities",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "MTR Corporation",
+    "ticker": "0066.HK",
+    "country": "Hong Kong",
+    "sector": "Industrials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "CK Asset Holdings",
+    "ticker": "1113.HK",
+    "country": "Hong Kong",
+    "sector": "Real Estate",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Hong Kong & China Gas",
+    "ticker": "0003.HK",
+    "country": "Hong Kong",
+    "sector": "Utilities",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Vietcombank",
+    "ticker": "VCB.VN",
+    "country": "Vietnam",
+    "sector": "Financials",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "VietinBank",
+    "ticker": "CTG.VN",
+    "country": "Vietnam",
+    "sector": "Financials",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Techcombank",
+    "ticker": "TCB.VN",
+    "country": "Vietnam",
+    "sector": "Financials",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Masan Group",
+    "ticker": "MSN.VN",
+    "country": "Vietnam",
+    "sector": "Consumer Staples",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Vingroup",
+    "ticker": "VIC.VN",
+    "country": "Vietnam",
+    "sector": "Real Estate",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Vinhomes",
+    "ticker": "VHM.VN",
+    "country": "Vietnam",
+    "sector": "Real Estate",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "FPT Corporation",
+    "ticker": "FPT.VN",
+    "country": "Vietnam",
+    "sector": "Information Technology",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Vinamilk",
+    "ticker": "VNM.VN",
+    "country": "Vietnam",
+    "sector": "Consumer Staples",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Hoa Phat Group",
+    "ticker": "HPG.VN",
+    "country": "Vietnam",
+    "sector": "Materials",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Vietnam Airlines",
+    "ticker": "HVN.VN",
+    "country": "Vietnam",
+    "sector": "Industrials",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Emaar Properties",
+    "ticker": "EMAAR.AE",
+    "country": "UAE",
+    "sector": "Real Estate",
+    "exchange": "DFM"
+  },
+  {
+    "name": "du (EITC)",
+    "ticker": "DU.AE",
+    "country": "UAE",
+    "sector": "Communication Services",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Habib Bank",
+    "ticker": "HBL.KA",
+    "country": "Pakistan",
+    "sector": "Financials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "United Bank",
+    "ticker": "UBL.KA",
+    "country": "Pakistan",
+    "sector": "Financials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "MCB Bank",
+    "ticker": "MCB.KA",
+    "country": "Pakistan",
+    "sector": "Financials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "OGDC",
+    "ticker": "OGDC.KA",
+    "country": "Pakistan",
+    "sector": "Energy",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Pakistan Petroleum",
+    "ticker": "PPL.KA",
+    "country": "Pakistan",
+    "sector": "Energy",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Engro Corporation",
+    "ticker": "ENGRO.KA",
+    "country": "Pakistan",
+    "sector": "Materials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Lucky Cement",
+    "ticker": "LUCK.KA",
+    "country": "Pakistan",
+    "sector": "Materials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Hub Power",
+    "ticker": "HUBC.KA",
+    "country": "Pakistan",
+    "sector": "Utilities",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Systems Limited",
+    "ticker": "SYS.KA",
+    "country": "Pakistan",
+    "sector": "Information Technology",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Pakistan Tobacco",
+    "ticker": "PAKT.KA",
+    "country": "Pakistan",
+    "sector": "Consumer Staples",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Yum China Holdings",
+    "ticker": "9987.HK",
+    "country": "Hong Kong",
+    "sector": "Consumer Discretionary",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Li Ning Company",
+    "ticker": "2331.HK",
+    "country": "Hong Kong",
+    "sector": "Consumer Discretionary",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Maruti Suzuki India",
+    "ticker": "MARUTI.NS",
+    "country": "India",
+    "sector": "Consumer Discretionary",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Titan Company",
+    "ticker": "TITAN.NS",
+    "country": "India",
+    "sector": "Consumer Discretionary",
+    "exchange": "NSE"
+  },
+  {
+    "name": "Astra International",
+    "ticker": "ASII.JK",
+    "country": "Indonesia",
+    "sector": "Consumer Discretionary",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Mitra Adiperkasa",
+    "ticker": "MAPI.JK",
+    "country": "Indonesia",
+    "sector": "Consumer Discretionary",
+    "exchange": "IDX"
+  },
+  {
+    "name": "Padini Holdings",
+    "ticker": "7052.KL",
+    "country": "Malaysia",
+    "sector": "Consumer Discretionary",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "AEON Co. Malaysia",
+    "ticker": "6599.KL",
+    "country": "Malaysia",
+    "sector": "Consumer Discretionary",
+    "exchange": "KLSE"
+  },
+  {
+    "name": "Interloop Limited",
+    "ticker": "ILP.KA",
+    "country": "Pakistan",
+    "sector": "Consumer Discretionary",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Jarir Marketing Company",
+    "ticker": "4190.SR",
+    "country": "Saudi Arabia",
+    "sector": "Consumer Discretionary",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Fawaz Alhokair Group",
+    "ticker": "4240.SR",
+    "country": "Saudi Arabia",
+    "sector": "Consumer Discretionary",
+    "exchange": "TADAWUL"
+  },
+  {
+    "name": "Giant Manufacturing",
+    "ticker": "9921.TW",
+    "country": "Taiwan",
+    "sector": "Consumer Discretionary",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Hotai Motor",
+    "ticker": "2207.TW",
+    "country": "Taiwan",
+    "sector": "Consumer Discretionary",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Minor International",
+    "ticker": "MINT.BK",
+    "country": "Thailand",
+    "sector": "Consumer Discretionary",
+    "exchange": "SET"
+  },
+  {
+    "name": "Central Retail Corporation",
+    "ticker": "CRC.BK",
+    "country": "Thailand",
+    "sector": "Consumer Discretionary",
+    "exchange": "SET"
+  },
+  {
+    "name": "Mobile World Investment",
+    "ticker": "MWG.VN",
+    "country": "Vietnam",
+    "sector": "Consumer Discretionary",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "FPT Retail",
+    "ticker": "FRT.VN",
+    "country": "Vietnam",
+    "sector": "Consumer Discretionary",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Kweichow Moutai",
+    "ticker": "600519.SS",
+    "country": "China",
+    "sector": "Consumer Staples",
+    "exchange": "SSE"
+  },
+  {
+    "name": "Wuliangye Yibin",
+    "ticker": "000858.SZ",
+    "country": "China",
+    "sector": "Consumer Staples",
+    "exchange": "SZSE"
+  },
+  {
+    "name": "Vitasoy International",
+    "ticker": "0345.HK",
+    "country": "Hong Kong",
+    "sector": "Consumer Staples",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Want Want China Holdings",
+    "ticker": "0151.HK",
+    "country": "Hong Kong",
+    "sector": "Consumer Staples",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Ajinomoto Co.",
+    "ticker": "2802.T",
+    "country": "Japan",
+    "sector": "Consumer Staples",
+    "exchange": "TSE"
+  },
+  {
+    "name": "Meiji Holdings",
+    "ticker": "2269.T",
+    "country": "Japan",
+    "sector": "Consumer Staples",
+    "exchange": "TSE"
+  },
+  {
+    "name": "KT&G Corporation",
+    "ticker": "033780.KS",
+    "country": "South Korea",
+    "sector": "Consumer Staples",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Lotte Chilsung Beverage",
+    "ticker": "005300.KS",
+    "country": "South Korea",
+    "sector": "Consumer Staples",
+    "exchange": "KRX"
+  },
+  {
+    "name": "President Chain Store",
+    "ticker": "2912.TW",
+    "country": "Taiwan",
+    "sector": "Consumer Staples",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "Uni-President Enterprises",
+    "ticker": "1216.TW",
+    "country": "Taiwan",
+    "sector": "Consumer Staples",
+    "exchange": "TWSE"
+  },
+  {
+    "name": "HKT Trust",
+    "ticker": "6823.HK",
+    "country": "Hong Kong",
+    "sector": "Communication Services",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Sinopec Corp",
+    "ticker": "0386.HK",
+    "country": "Hong Kong",
+    "sector": "Energy",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Sino Biopharmaceutical",
+    "ticker": "1177.HK",
+    "country": "Hong Kong",
+    "sector": "Health Care",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Lenovo Group",
+    "ticker": "0992.HK",
+    "country": "Hong Kong",
+    "sector": "Information Technology",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Jiangxi Copper",
+    "ticker": "0358.HK",
+    "country": "Hong Kong",
+    "sector": "Materials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Pakistan Telecom Authority",
+    "ticker": "PTC.KA",
+    "country": "Pakistan",
+    "sector": "Communication Services",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Ferozsons Laboratories",
+    "ticker": "FEROZ.KA",
+    "country": "Pakistan",
+    "sector": "Health Care",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Pak Suzuki Motor",
+    "ticker": "PSMC.KA",
+    "country": "Pakistan",
+    "sector": "Consumer Discretionary",
+    "exchange": "PSX"
+  },
+  {
+    "name": "S-Oil Corporation",
+    "ticker": "010950.KS",
+    "country": "South Korea",
+    "sector": "Energy",
+    "exchange": "KRX"
+  },
+  {
+    "name": "PetroVietnam Gas",
+    "ticker": "GAS.VN",
+    "country": "Vietnam",
+    "sector": "Energy",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Vietnam Electricity Finance",
+    "ticker": "EVF.VN",
+    "country": "Vietnam",
+    "sector": "Utilities",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Fauji Cement Company",
+    "ticker": "FCCL.KA",
+    "country": "Pakistan",
+    "sector": "Industrials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Maple Leaf Cement",
+    "ticker": "MLCF.KA",
+    "country": "Pakistan",
+    "sector": "Industrials",
+    "exchange": "PSX"
+  },
+  {
+    "name": "Dolmen City REIT",
+    "ticker": "DCR.KA",
+    "country": "Pakistan",
+    "sector": "Real Estate",
+    "exchange": "PSX"
+  },
+  {
+    "name": "HDC Holdings",
+    "ticker": "012630.KS",
+    "country": "South Korea",
+    "sector": "Real Estate",
+    "exchange": "KRX"
+  },
+  {
+    "name": "Drake & Scull International",
+    "ticker": "DSI.AE",
+    "country": "UAE",
+    "sector": "Industrials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Vietnam Posts & Telecom",
+    "ticker": "POW.VN",
+    "country": "Vietnam",
+    "sector": "Communication Services",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Hau Giang Pharma",
+    "ticker": "DHG.VN",
+    "country": "Vietnam",
+    "sector": "Health Care",
+    "exchange": "HOSE"
+  },
+  {
+    "name": "Dubai Islamic Bank",
+    "ticker": "DIB.AE",
+    "country": "UAE",
+    "sector": "Financials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Gulf Finance House",
+    "ticker": "GFH.AE",
+    "country": "UAE",
+    "sector": "Financials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Amlak Finance",
+    "ticker": "AMLAK.AE",
+    "country": "UAE",
+    "sector": "Financials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Shuaa Capital",
+    "ticker": "SHUAA.AE",
+    "country": "UAE",
+    "sector": "Financials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Deyaar Development",
+    "ticker": "DEYAAR.AE",
+    "country": "UAE",
+    "sector": "Real Estate",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Emaar Development",
+    "ticker": "EMAARDEV.AE",
+    "country": "UAE",
+    "sector": "Real Estate",
+    "exchange": "DFM"
+  },
+  {
+    "name": "National Central Cooling",
+    "ticker": "TABREED.AE",
+    "country": "UAE",
+    "sector": "Utilities",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Salik Company",
+    "ticker": "SALIK.AE",
+    "country": "UAE",
+    "sector": "Industrials",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Taaleem Holdings",
+    "ticker": "TAALEEM.AE",
+    "country": "UAE",
+    "sector": "Consumer Discretionary",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Spinneys Dubai",
+    "ticker": "SPINNEYS.AE",
+    "country": "UAE",
+    "sector": "Consumer Staples",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Ekttitab Holding",
+    "ticker": "EKTTITAB.AE",
+    "country": "UAE",
+    "sector": "Communication Services",
+    "exchange": "DFM"
+  },
+  {
+    "name": "BOC Hong Kong Holdings",
+    "ticker": "2388.HK",
+    "country": "Hong Kong",
+    "sector": "Financials",
+    "exchange": "HKEX"
+  },
+  {
+    "name": "Advanced Info Service",
+    "ticker": "ADVANC.BK",
+    "country": "Thailand",
+    "sector": "Communication Services",
+    "exchange": "SET"
+  },
+  {
+    "name": "Amanat Holdings",
+    "ticker": "AMANAT.AE",
+    "country": "UAE",
+    "sector": "Health Care",
+    "exchange": "DFM"
+  },
+  {
+    "name": "Emirates District Cooling",
+    "ticker": "EMPOWER.AE",
+    "country": "UAE",
+    "sector": "Energy",
+    "exchange": "DFM"
+  }
 ]

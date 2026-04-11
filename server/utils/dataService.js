@@ -32,6 +32,10 @@ const SUFFIX_TO_EXCHANGE = {
   ".JK":  "IDX",
   ".KL":  "KLSE",
   ".SR":  "TADAWUL",
+  ".VN":  "HOSE",
+  ".PS":  "PSE",
+  ".AE":  "ADX",
+  ".KA":  "PSX",
 };
 
 function toTwelveSymbol(yahooTicker) {
@@ -160,10 +164,12 @@ async function runQueue() {
 // Cache-only lookup — live fetches happen only via the background queue.
 const fetchCompanyData = async (ticker) => getCached(ticker) ?? null;
 
-// Queues all tickers that have no live data yet (seed-only or missing).
-const prewarmCache = async (companies) => {
-  const unique  = [...new Map(companies.map((c) => [c.ticker, c])).values()];
-  const toFetch = unique.filter((c) => { const d = getCached(c.ticker); return !d || d.isSeed; });
+const pool = require("./db");
+
+// Queues all tickers from DB that have no live data yet.
+const prewarmCache = async () => {
+  const { rows } = await pool.query("SELECT ticker FROM companies");
+  const toFetch  = rows.filter((c) => { const d = getCached(c.ticker); return !d || d.isSeed; });
 
   if (toFetch.length === 0) {
     console.log("📦 All tickers have live data — skipping pre-warm");

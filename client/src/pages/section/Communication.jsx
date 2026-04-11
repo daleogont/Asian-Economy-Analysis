@@ -1,5 +1,5 @@
 import SectionPage from "../../components/SectionPage";
 
-export default function Communication() {
-  return <SectionPage sector="Communication"/>;
+export default function CommunicationServices() {
+  return <SectionPage sector="Communication Services" />;
 }

@@ -1,5 +1,5 @@
 import SectionPage from "../../components/SectionPage";
 
-export default function Consumer() {
-  return <SectionPage sector="Consumer"/>;
+export default function ConsumerDiscretionary() {
+  return <SectionPage sector="Consumer Discretionary" />;
 }

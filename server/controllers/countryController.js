@@ -1,55 +1,42 @@
-// server/controllers/countryController.js
-const path = require("path");
-const fs   = require("fs");
-const { getCache } = require("../utils/cacheStore");
-
-const companiesPath = path.join(__dirname, "../../data/realCompanies.json");
+const { getAllLatestPrices } = require("../utils/stockQueries");
 
 const getCountries = async (req, res) => {
   try {
-    const companies = JSON.parse(fs.readFileSync(companiesPath, "utf-8"));
-    const cache     = getCache();
+    const prices = await getAllLatestPrices();
+    const map = {};
 
-    const countryMap = {};
+    for (const p of Object.values(prices)) {
+      if (!p.price) continue;
 
-    companies.forEach(({ ticker, country, sector }) => {
-      const data = cache.get(ticker);
-      if (
-        !data ||
-        typeof data.stockPrice    !== "number" ||
-        typeof data.previousClose !== "number"
-      ) return;
-
-      if (!countryMap[country]) {
-        countryMap[country] = { totalCap: 0, sectors: {}, weeklyReturns: [] };
+      if (!map[p.country]) {
+        map[p.country] = { weeklyReturns: [], sectors: {}, companyCount: 0 };
       }
 
-      const cap = data.marketCap ?? 0;
-      countryMap[country].totalCap += cap;
-      countryMap[country].sectors[sector] =
-        (countryMap[country].sectors[sector] || 0) + cap;
+      map[p.country].companyCount++;
+      map[p.country].sectors[p.sector] =
+        (map[p.country].sectors[p.sector] || 0) + 1;
 
-      const weeklyReturn =
-        typeof data.weeklyReturn === "number"
-          ? data.weeklyReturn
-          : ((data.stockPrice - data.previousClose) / data.previousClose) * 100;
-      countryMap[country].weeklyReturns.push(weeklyReturn);
-    });
+      if (p.weekly_return !== null) {
+        map[p.country].weeklyReturns.push(Number(p.weekly_return));
+      }
+    }
 
-    const result = Object.entries(countryMap).map(([country, data]) => ({
+    const result = Object.entries(map).map(([country, d]) => ({
       country,
-      totalCap: data.totalCap,
-      sectors:  data.sectors,
+      companyCount: d.companyCount,
+      sectors: d.sectors,
       averageWeeklyReturn:
-        data.weeklyReturns.length > 0
+        d.weeklyReturns.length > 0
           ? Number(
-              (data.weeklyReturns.reduce((a, b) => a + b, 0) /
-                data.weeklyReturns.length).toFixed(2)
+              (
+                d.weeklyReturns.reduce((a, b) => a + b, 0) /
+                d.weeklyReturns.length
+              ).toFixed(2)
             )
           : null,
     }));
 
-    result.sort((a, b) => b.totalCap - a.totalCap);
+    result.sort((a, b) => b.companyCount - a.companyCount);
     res.json(result);
   } catch (err) {
     console.error("countryController error:", err.message);

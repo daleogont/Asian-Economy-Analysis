@@ -1,59 +1,35 @@
-// server/controllers/sectorController.js
-const path = require("path");
-const fs   = require("fs");
-const { getCache } = require("../utils/cacheStore");
-
-const companiesPath = path.join(__dirname, "../../data/realCompanies.json");
+const { getAllLatestPrices } = require("../utils/stockQueries");
 
 const getSectors = async (req, res) => {
   try {
-    const companies = JSON.parse(fs.readFileSync(companiesPath, "utf-8"));
-    const cache     = getCache();
+    const prices = await getAllLatestPrices();
+    const map    = {};
 
-    const sectorData   = {};
-    let totalMarketCap = 0;
+    for (const p of Object.values(prices)) {
+      if (!p.price) continue;
 
-    companies.forEach((company) => {
-      const cached = cache.get(company.ticker);
-      if (
-        !cached ||
-        typeof cached.stockPrice    !== "number" ||
-        typeof cached.previousClose !== "number"
-      ) return;
-
-      const marketCap = cached.marketCap ?? 0;
-      const { stockPrice, previousClose } = cached;
-      const weeklyReturn =
-        typeof cached.weeklyReturn === "number"
-          ? cached.weeklyReturn
-          : ((stockPrice - previousClose) / previousClose) * 100;
-
-      if (!sectorData[company.sector]) {
-        sectorData[company.sector] = {
-          name: company.sector,
-          totalCap: 0,
-          weightedReturnSum: 0,
-        };
+      if (!map[p.sector]) {
+        map[p.sector] = { returns: [], companyCount: 0 };
       }
 
-      sectorData[company.sector].totalCap          += marketCap;
-      sectorData[company.sector].weightedReturnSum += weeklyReturn * marketCap;
-      totalMarketCap += marketCap;
-    });
+      map[p.sector].companyCount++;
+      if (p.weekly_return !== null) {
+        map[p.sector].returns.push(Number(p.weekly_return));
+      }
+    }
 
-    const result = Object.values(sectorData).map((sector) => ({
-      name:         sector.name,
-      marketWeight: Number(((sector.totalCap / totalMarketCap) * 100).toFixed(2)),
-      weeklyReturn:
-        sector.totalCap > 0
-          ? Number((sector.weightedReturnSum / sector.totalCap).toFixed(2))
-          : null,
+    const result = Object.entries(map).map(([sector, d]) => ({
+      name:                sector,
+      companyCount:        d.companyCount,
+      averageWeeklyReturn: d.returns.length > 0
+        ? Number((d.returns.reduce((a, b) => a + b, 0) / d.returns.length).toFixed(2))
+        : null,
     }));
 
-    result.sort((a, b) => b.marketWeight - a.marketWeight);
+    result.sort((a, b) => a.name.localeCompare(b.name));
     res.json(result);
-  } catch (error) {
-    console.error("sectorController error:", error.message);
+  } catch (err) {
+    console.error("sectorController error:", err.message);
     res.status(500).json({ error: "Failed to process sectors" });
   }
 };

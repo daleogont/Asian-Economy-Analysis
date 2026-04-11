@@ -1,5 +1,5 @@
 import SectionPage from "../../components/SectionPage";
 
-export default function Health() {
-  return <SectionPage sector="Health"/>;
+export default function HealthCare() {
+  return <SectionPage sector="Health Care" />;
 }

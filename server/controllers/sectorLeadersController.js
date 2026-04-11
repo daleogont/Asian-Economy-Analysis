@@ -1,37 +1,33 @@
-// server/controllers/sectorLeadersController.js
-const path = require("path");
-const fs   = require("fs");
-const { getCache } = require("../utils/cacheStore");
+const { getAllLatestPrices } = require("../utils/stockQueries");
 
-const companiesPath = path.join(__dirname, "../../data/realCompanies.json");
+const getSectorLeaders = async (req, res) => {
+  try {
+    const prices  = await getAllLatestPrices();
+    const leaders = {};
 
-const getSectorLeaders = (req, res) => {
-  const companies = JSON.parse(fs.readFileSync(companiesPath, "utf-8"));
-  const cache     = getCache();
+    for (const p of Object.values(prices)) {
+      if (!p.price) continue;
 
-  const leaders = {};
-
-  companies.forEach((company) => {
-    const data = cache.get(company.ticker);
-    if (!data || typeof data.stockPrice !== "number") return;
-
-    const cap = data.marketCap ?? 0;
-    if (
-      !leaders[company.sector] ||
-      cap > (leaders[company.sector].marketCap ?? 0)
-    ) {
-      leaders[company.sector] = {
-        name:       company.name,
-        ticker:     company.ticker,
-        country:    company.country,
-        sector:     company.sector,
-        marketCap:  cap,
-        stockPrice: data.stockPrice,
-      };
+      const price = Number(p.price);
+      if (!leaders[p.sector] || price > leaders[p.sector].stockPrice) {
+        leaders[p.sector] = {
+          name:         p.name,
+          ticker:       p.ticker,
+          country:      p.country,
+          sector:       p.sector,
+          exchange:     p.exchange,
+          stockPrice:   price,
+          weeklyReturn: p.weekly_return !== null ? Number(p.weekly_return) : null,
+          currency:     p.currency,
+        };
+      }
     }
-  });
 
-  res.json(Object.values(leaders));
+    res.json(Object.values(leaders));
+  } catch (err) {
+    console.error("sectorLeadersController error:", err.message);
+    res.status(500).json({ error: "Failed to get sector leaders" });
+  }
 };
 
 module.exports = { getSectorLeaders };

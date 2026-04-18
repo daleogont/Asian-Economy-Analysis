@@ -234,18 +234,6 @@ realCompanies.json (272 companies)
   analytics endpoints (reads directly from DB)
 ```
 
----
-
-## Authentication
-
-User registration and login are **planned for Stage 2** (not implemented in Stage 1).
-
-Planned implementation:
-- `POST /api/auth/register` — create account (name, email, hashed password)
-- `POST /api/auth/login` — issue JWT token
-- `GET /api/auth/profile` — protected route, requires Bearer token
-- JWT middleware on protected Node.js routes
-- `users` table in PostgreSQL
 
 ---
 
@@ -272,4 +260,4 @@ Postman collection with all 27 requests: see `postman_collection.json` in projec
 
 ## Google Drive Report
 
-**URL:** `[TO BE ADDED]`
+**URL:** `https://docs.google.com/document/d/1RQGuEa_BeF6HygheNGAJxgz_Gvc1pdyMAmZfvHKZiwQ/edit?tab=t.0`

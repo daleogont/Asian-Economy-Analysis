@@ -72,16 +72,6 @@ Detailed view for a single sector (e.g. `/section/financials`, `/section/informa
 **Available sector pages:**
 Communication Services, Consumer Discretionary, Consumer Staples, Energy, Financials, Health Care, Industrials, Information Technology, Materials, Real Estate, Utilities
 
----
-
-### Planned pages (Stage 2)
-
-| Page      | Route       | Description                                             |
-|-----------|-------------|---------------------------------------------------------|
-| Register  | `/register` | User registration form (name, email, password)          |
-| Login     | `/login`    | User login form with JWT token storage                  |
-| Profile   | `/profile`  | Protected route — saved watchlists, preferences         |
-| About     | `/about`    | Project description, dissertation context, team info    |
 
 ---
 
@@ -175,4 +165,4 @@ open http://localhost:3000
 
 ## Google Drive Report
 
-**URL:** `[TO BE ADDED]`
+**URL:** `https://docs.google.com/document/d/18gOlfxCOEoCAH0wK0i6AukZG3dvCwd8ZOLh2xnFPW1g/edit?tab=t.0`

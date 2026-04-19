@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   node-api:
     build:
       context: .
@@ -40,9 +51,52 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-asianmarkets}
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-worker:
+    build:
+      context: analytics
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-asianmarkets}
+      REDIS_URL: redis://redis:6379/0
+    command: >
+      celery -A app.celery_app:celery_app worker
+      --loglevel=info
+      -Q email_queue,longrunning_queue
+      --concurrency=2
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  flower:
+    build:
+      context: analytics
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-asianmarkets}
+    command: >
+      celery -A app.celery_app:celery_app
+      -b redis://redis:6379/0
+      flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
       postgres:
         condition: service_healthy
 

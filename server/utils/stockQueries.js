@@ -9,10 +9,11 @@ async function getAllLatestPrices() {
       ORDER BY ticker, date DESC
     ),
     week_ago AS (
-      SELECT DISTINCT ON (ticker) ticker, close AS week_close
-      FROM daily_prices
-      WHERE date <= CURRENT_DATE - INTERVAL '5 days'
-      ORDER BY ticker, date DESC
+      SELECT DISTINCT ON (dp.ticker) dp.ticker, dp.close AS week_close
+      FROM daily_prices dp
+      JOIN latest l USING (ticker)
+      WHERE dp.date <= l.date - INTERVAL '7 days'
+      ORDER BY dp.ticker, dp.date DESC
     )
     SELECT
       c.ticker, c.name, c.country, c.sector, c.exchange,

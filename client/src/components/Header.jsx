@@ -7,30 +7,35 @@ const Header = () => {
   const [openSubmenu, setOpenSubmenu] = useState(null);
 
   const sections = [
-    { name: "Finance", path: "/section/finance" },
-    { name: "Technology", path: "/section/technology" },
-    { name: "Energy", path: "/section/energy" },
-    { name: "Health", path: "/section/health" },
-    { name: "Real Estate", path: "/section/realestate" },
-    { name: "Utilities", path: "/section/utilities" },
-    { name: "Industrials", path: "/section/industrials" },
-    { name: "Consumer", path: "/section/consumer" },
-    { name: "Materials", path: "/section/materials" },
-    { name: "Communication", path: "/section/communication" },
+    { name: "Financials",             path: "/section/financials" },
+    { name: "Information Technology", path: "/section/information-technology" },
+    { name: "Energy",                 path: "/section/energy" },
+    { name: "Health Care",            path: "/section/health-care" },
+    { name: "Real Estate",            path: "/section/real-estate" },
+    { name: "Utilities",              path: "/section/utilities" },
+    { name: "Industrials",            path: "/section/industrials" },
+    { name: "Consumer Discretionary", path: "/section/consumer-discretionary" },
+    { name: "Consumer Staples",       path: "/section/consumer-staples" },
+    { name: "Materials",              path: "/section/materials" },
+    { name: "Communication Services", path: "/section/communication-services" },
   ];
 
   const countries = [
-    { name: "Japan", path: "/country/japan" },
-    { name: "China", path: "/country/china" },
-    { name: "India", path: "/country/india" },
-    { name: "Thailand", path: "/country/thailand" },
-    { name: "Singapore", path: "/country/singapore" },
-    { name: "Indonesia", path: "/country/indonesia" },
-    { name: "Malaysia", path: "/country/malaysia" },
-    { name: "Taiwan", path: "/country/taiwan" },
-    { name: "South Korea", path: "/country/southkorea" },
-    { name: "Saudi Arabia", path: "/country/saudiarabia" },
-];
+    { name: "Japan",        path: "/country/japan" },
+    { name: "China",        path: "/country/china" },
+    { name: "India",        path: "/country/india" },
+    { name: "Thailand",     path: "/country/thailand" },
+    { name: "Singapore",    path: "/country/singapore" },
+    { name: "Indonesia",    path: "/country/indonesia" },
+    { name: "Malaysia",     path: "/country/malaysia" },
+    { name: "Taiwan",       path: "/country/taiwan" },
+    { name: "South Korea",  path: "/country/south-korea" },
+    { name: "Saudi Arabia", path: "/country/saudi-arabia" },
+    { name: "Hong Kong",    path: "/country/hong-kong" },
+    { name: "Vietnam",      path: "/country/vietnam" },
+    { name: "UAE",          path: "/country/uae" },
+    { name: "Pakistan",     path: "/country/pakistan" },
+  ];
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const toggleSubmenu = (menu) =>
@@ -125,6 +130,7 @@ const Header = () => {
               <BookOpen className="w-5 h-5" />
               <span>Research</span>
             </Link>
+
           </nav>
         </div>
       )}

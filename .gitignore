@@ -5,3 +5,5 @@ build/
 .cache/
 .DS_Store
 data/cache.json
+.claude/
+client/coverage/

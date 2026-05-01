@@ -9,7 +9,8 @@
     { "key": "python_url", "value": "http://localhost:8000", "type": "string" },
     { "key": "ticker_hk",  "value": "9988.HK",  "type": "string" },
     { "key": "ticker_kr",  "value": "005930.KS", "type": "string" },
-    { "key": "ticker_jp",  "value": "7203.T",    "type": "string" }
+    { "key": "ticker_jp",  "value": "7203.T",    "type": "string" },
+    { "key": "task_id",    "value": "",           "type": "string", "description": "Populated automatically after triggering a task. Copy task_id from POST /tasks/email or POST /tasks/analysis response." }
   ],
   "item": [
     {
@@ -359,6 +360,71 @@
                     { "key": "period", "value": "2y" }
                   ]
                 }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Async Tasks",
+          "item": [
+            {
+              "name": "Trigger email notification task",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{python_url}}/tasks/email",
+                  "host": ["{{python_url}}"],
+                  "path": ["tasks", "email"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"users\": [\"admin@example.com\", \"analyst@example.com\", \"trader@example.com\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Triggers send_email_notification task on email_queue.\n\nReturns task_id — copy it into the {{task_id}} collection variable to use with GET /tasks/status/{{task_id}}.\n\nThe task fetches top 5 weekly movers from PostgreSQL automatically and logs a simulated send for each user. Result is saved to task_results table and broadcast over WebSocket."
+              },
+              "response": []
+            },
+            {
+              "name": "Trigger market analysis task",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{python_url}}/tasks/analysis",
+                  "host": ["{{python_url}}"],
+                  "path": ["tasks", "analysis"]
+                },
+                "description": "Triggers run_market_analysis task on longrunning_queue.\n\nReturns task_id — copy it into the {{task_id}} collection variable.\n\nThe task runs a full analytics pass across all 272 companies, grouping by country and computing avg price, avg/best/worst weekly return per country. Result is saved to task_results table and broadcast over WebSocket."
+              },
+              "response": []
+            },
+            {
+              "name": "Get task status",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/tasks/status/{{task_id}}",
+                  "host": ["{{python_url}}"],
+                  "path": ["tasks", "status", "{{task_id}}"]
+                },
+                "description": "Polls task status and result from Redis result backend.\n\nSet {{task_id}} in collection variables first (copy from POST /tasks/email or POST /tasks/analysis response).\n\nPossible statuses: PENDING → STARTED → SUCCESS | FAILURE.\nResult field is populated once the task is in SUCCESS or FAILURE state."
+              },
+              "response": []
+            },
+            {
+              "name": "Get task history",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/tasks/history?limit=20",
+                  "host": ["{{python_url}}"],
+                  "path": ["tasks", "history"],
+                  "query": [{ "key": "limit", "value": "20", "description": "Number of recent tasks to return (1–500, default 50)" }]
+                },
+                "description": "Returns the most recent completed tasks from the PostgreSQL task_results table, ordered by completion time descending. Used by the admin dashboard to load history on page load."
               },
               "response": []
             }

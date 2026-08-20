@@ -65,7 +65,7 @@ async function runDeltaFetch() {
 
     const today     = new Date(); today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today - 86400000);
-    const twoYearsAgo = new Date(Date.now() - 730 * 86400000);
+    const fiveYearsAgo = new Date(Date.now() - 1825 * 86400000);
 
     const toUpdate = allCompanies.filter((c) => {
       const last = latest[c.ticker];
@@ -84,7 +84,7 @@ async function runDeltaFetch() {
       const { ticker } = toUpdate[i];
       const fromDate   = latest[ticker]
         ? new Date(latest[ticker].getTime() + 86400000)
-        : twoYearsAgo;
+        : fiveYearsAgo;
 
       try {
         const rows     = await fetchHistory(ticker, fromDate);

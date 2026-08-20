@@ -12,10 +12,10 @@ def rolling(
 ):
     """
     Returns daily close prices + rolling mean for a ticker.
-    period: 3m | 6m | 1y | 2y
+    period: 3m | 6m | 1y | 2y | 5y
     window: rolling average window in trading days
     """
-    days_map = {"3m": 90, "6m": 180, "1y": 365, "2y": 730}
+    days_map = {"3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
     days = days_map.get(period, 365)
 
     df = fetch_df(

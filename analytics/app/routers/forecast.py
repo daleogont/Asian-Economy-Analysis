@@ -21,7 +21,7 @@ def forecast(
     ARIMA(1,1,1) forecast for a ticker.
     Returns historical closes + predicted closes with 95% confidence interval.
     """
-    days_map = {"6m": 180, "1y": 365, "2y": 730}
+    days_map = {"6m": 180, "1y": 365, "2y": 730, "5y": 1825}
     history_days = days_map.get(period, 365)
 
     df = fetch_df(

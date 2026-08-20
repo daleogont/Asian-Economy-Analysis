@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 router = APIRouter()
 
-PERIOD_DAYS = {"3m": 90, "6m": 180, "1y": 365, "2y": 730}
+PERIOD_DAYS = {"3m": 90, "6m": 180, "1y": 365, "2y": 730, "5y": 1825}
 
 
 def _period_to_days(period: str) -> int:

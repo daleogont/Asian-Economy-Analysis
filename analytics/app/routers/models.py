@@ -47,7 +47,7 @@ def forecast_with_model(
             detail=f"Unknown model '{model}'. Available: {sorted(MODEL_REGISTRY)}",
         )
 
-    days_map = {"6m": 180, "1y": 365, "2y": 730}
+    days_map = {"6m": 180, "1y": 365, "2y": 730, "5y": 1825}
     history_days = days_map.get(period, 365)
 
     df = fetch_df(

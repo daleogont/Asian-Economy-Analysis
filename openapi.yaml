@@ -136,6 +136,7 @@ paths:
         - `6m` → 180 days
         - `1y` → 365 days
         - `2y` → 730 days
+        - `5y` → 1825 days
       parameters:
         - name: ticker
           in: path
@@ -157,11 +158,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window — 3m | 6m | 1y | 2y
+          description: History window — 3m | 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [3m, 6m, 1y, 2y]
+            enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":
@@ -229,11 +230,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window used for ARIMA training — 6m | 1y | 2y
+          description: History window used for ARIMA training — 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [6m, 1y, 2y]
+            enum: [6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":
@@ -324,11 +325,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window used for training — 6m | 1y | 2y
+          description: History window used for training — 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [6m, 1y, 2y]
+            enum: [6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":
@@ -395,11 +396,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window — 3m | 6m | 1y | 2y
+          description: History window — 3m | 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [3m, 6m, 1y, 2y]
+            enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":
@@ -463,11 +464,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window — 3m | 6m | 1y | 2y
+          description: History window — 3m | 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [3m, 6m, 1y, 2y]
+            enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":
@@ -529,11 +530,11 @@ paths:
         - name: period
           in: query
           required: false
-          description: History window used to compute return/volatility features — 3m | 6m | 1y | 2y
+          description: History window used to compute return/volatility features — 3m | 6m | 1y | 2y | 5y
           schema:
             type: string
             default: 1y
-            enum: [3m, 6m, 1y, 2y]
+            enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
       responses:
         "200":

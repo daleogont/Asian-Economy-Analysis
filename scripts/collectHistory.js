@@ -32,7 +32,7 @@ async function fetchFromYahoo(ticker) {
   if (Date.now() < yahooCoolUntil) return null;
   const hosts = ["query1.finance.yahoo.com", "query2.finance.yahoo.com"];
   const host  = hosts[Math.floor(Math.random() * hosts.length)];
-  const url   = `https://${host}/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2y`;
+  const url   = `https://${host}/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5y`;
 
   const resp   = await axios.get(url, { headers: YAHOO_HEADERS, timeout: 15000 });
   const result = resp.data?.chart?.result?.[0];
@@ -52,8 +52,8 @@ async function fetchFromYahoo(ticker) {
 async function fetchFromTwelveData(ticker) {
   if (!TWELVE_DATA_KEY) return null;
   const symbol    = toTwelveSymbol(ticker);
-  const startDate = new Date(Date.now() - 730 * 86400000).toISOString().split("T")[0];
-  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&start_date=${startDate}&outputsize=500&apikey=${TWELVE_DATA_KEY}`;
+  const startDate = new Date(Date.now() - 1825 * 86400000).toISOString().split("T")[0];
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&start_date=${startDate}&outputsize=1825&apikey=${TWELVE_DATA_KEY}`;
 
   const resp = await axios.get(url, { timeout: 15000 });
   const data = resp.data;

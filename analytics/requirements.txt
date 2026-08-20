@@ -15,3 +15,4 @@ prophet==1.1.5
 scikit-learn==1.5.2
 xgboost==1.7.6
 yfinance>=0.2.50
+requests==2.32.3

@@ -35,7 +35,13 @@ class BaseForecastModel:
             return None, None
 
         try:
-            holdout_model = type(self)()
+            # Subclasses that need extra constructor config (e.g. enriched
+            # features) can set self._init_kwargs so the holdout clone is
+            # configured identically to the real model, not reset to
+            # defaults. Models with no-arg constructors (arima/ets/sarima/
+            # prophet) never set this, so type(self)() behavior is unchanged.
+            init_kwargs = getattr(self, "_init_kwargs", {})
+            holdout_model = type(self)(**init_kwargs)
             holdout_model.fit(train)
             pred = holdout_model.predict(len(holdout))
             actual = holdout.to_numpy()

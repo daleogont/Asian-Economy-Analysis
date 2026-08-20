@@ -102,6 +102,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Cache"],
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

@@ -8,3 +8,5 @@ data/cache.json
 .claude/
 client/coverage/
 PROJECT_STATE.md
+__pycache__/
+*.pyc

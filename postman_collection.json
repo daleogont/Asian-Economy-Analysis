@@ -5,12 +5,37 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "node_url",   "value": "http://localhost:4000", "type": "string" },
-    { "key": "python_url", "value": "http://localhost:8000", "type": "string" },
-    { "key": "ticker_hk",  "value": "9988.HK",  "type": "string" },
-    { "key": "ticker_kr",  "value": "005930.KS", "type": "string" },
-    { "key": "ticker_jp",  "value": "7203.T",    "type": "string" },
-    { "key": "task_id",    "value": "",           "type": "string", "description": "Populated automatically after triggering a task. Copy task_id from POST /tasks/email or POST /tasks/analysis response." }
+    {
+      "key": "node_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "python_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "ticker_hk",
+      "value": "9988.HK",
+      "type": "string"
+    },
+    {
+      "key": "ticker_kr",
+      "value": "005930.KS",
+      "type": "string"
+    },
+    {
+      "key": "ticker_jp",
+      "value": "7203.T",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "string",
+      "description": "Populated automatically after triggering a task. Copy task_id from POST /tasks/email or POST /tasks/analysis response."
+    }
   ],
   "item": [
     {
@@ -23,7 +48,16 @@
               "name": "Server health & cache status",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/health", "host": ["{{node_url}}"], "path": ["api","health"] },
+                "url": {
+                  "raw": "{{node_url}}/api/health",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "health"
+                  ]
+                },
                 "description": "Returns server status and live-data cache statistics (total, live, seed, stale entries, Yahoo vs Twelve Data split)."
               },
               "response": []
@@ -37,7 +71,16 @@
               "name": "Get all companies",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/companies", "host": ["{{node_url}}"], "path": ["api","companies"] },
+                "url": {
+                  "raw": "{{node_url}}/api/companies",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "companies"
+                  ]
+                },
                 "description": "Returns all 272 companies with latest stock price, weekly return, country, sector, exchange. Data sourced from PostgreSQL daily_prices joined with companies table."
               },
               "response": []
@@ -51,7 +94,16 @@
               "name": "Get all countries",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/countries", "host": ["{{node_url}}"], "path": ["api","countries"] },
+                "url": {
+                  "raw": "{{node_url}}/api/countries",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "countries"
+                  ]
+                },
                 "description": "Returns aggregated stats per country: company count, sector breakdown, average weekly return."
               },
               "response": []
@@ -65,7 +117,16 @@
               "name": "Get all sectors",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/sectors", "host": ["{{node_url}}"], "path": ["api","sectors"] },
+                "url": {
+                  "raw": "{{node_url}}/api/sectors",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sectors"
+                  ]
+                },
                 "description": "Returns all 11 sectors with company count and average weekly return."
               },
               "response": []
@@ -74,7 +135,16 @@
               "name": "Get sector leaders",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/sector-leaders", "host": ["{{node_url}}"], "path": ["api","sector-leaders"] },
+                "url": {
+                  "raw": "{{node_url}}/api/sector-leaders",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sector-leaders"
+                  ]
+                },
                 "description": "Returns the highest-priced company in each sector."
               },
               "response": []
@@ -88,7 +158,16 @@
               "name": "Market overview",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{node_url}}/api/market-overview", "host": ["{{node_url}}"], "path": ["api","market-overview"] },
+                "url": {
+                  "raw": "{{node_url}}/api/market-overview",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "market-overview"
+                  ]
+                },
                 "description": "Returns platform-wide stats: total companies, average weekly return, companies per country."
               },
               "response": []
@@ -99,11 +178,24 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/top-movers?count=5&direction=up",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","top-movers"],
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "top-movers"
+                  ],
                   "query": [
-                    { "key": "count",     "value": "5",  "description": "Number of results (max 20)" },
-                    { "key": "direction", "value": "up", "description": "up | down" }
+                    {
+                      "key": "count",
+                      "value": "5",
+                      "description": "Number of results (max 20)"
+                    },
+                    {
+                      "key": "direction",
+                      "value": "up",
+                      "description": "up | down"
+                    }
                   ]
                 },
                 "description": "Returns top N companies by weekly return. direction=up for gainers, direction=down for losers."
@@ -116,11 +208,24 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/top-movers?count=5&direction=down",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","top-movers"],
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "top-movers"
+                  ],
                   "query": [
-                    { "key": "count",     "value": "5",    "description": "Number of results (max 20)" },
-                    { "key": "direction", "value": "down", "description": "up | down" }
+                    {
+                      "key": "count",
+                      "value": "5",
+                      "description": "Number of results (max 20)"
+                    },
+                    {
+                      "key": "direction",
+                      "value": "down",
+                      "description": "up | down"
+                    }
                   ]
                 }
               },
@@ -137,9 +242,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/macros?country=Japan",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","macros"],
-                  "query": [{ "key": "country", "value": "Japan", "description": "Country name (Japan, China, India, Singapore, Thailand, Indonesia, Malaysia, Saudi Arabia, South Korea, Taiwan)" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "macros"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan",
+                      "description": "Country name (Japan, China, India, Singapore, Thailand, Indonesia, Malaysia, Saudi Arabia, South Korea, Taiwan)"
+                    }
+                  ]
                 },
                 "description": "Returns GDP, population, unemployment rate from World Bank API. Supported: Japan, China, India, Singapore, Thailand, Indonesia, Malaysia, Saudi Arabia, South Korea, Taiwan."
               },
@@ -151,9 +267,19 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/macros?country=South Korea",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","macros"],
-                  "query": [{ "key": "country", "value": "South Korea" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "macros"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "South Korea"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -164,9 +290,19 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/macros?country=China",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","macros"],
-                  "query": [{ "key": "country", "value": "China" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "macros"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "China"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -182,9 +318,21 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/history/9988.HK?period=1y",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","history","9988.HK"],
-                  "query": [{ "key": "period", "value": "1y", "description": "3m | 6m | 1y | 2y" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "history",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "3m | 6m | 1y | 2y"
+                    }
+                  ]
                 },
                 "description": "Returns OHLCV daily price history for a ticker from PostgreSQL. period: 3m (90d), 6m (180d), 1y (365d), 2y (730d)."
               },
@@ -196,9 +344,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/history/005930.KS?period=2y",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","history","005930.KS"],
-                  "query": [{ "key": "period", "value": "2y" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "history",
+                    "005930.KS"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "2y"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -209,9 +368,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/history/7203.T?period=6m",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","history","7203.T"],
-                  "query": [{ "key": "period", "value": "6m" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "history",
+                    "7203.T"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "6m"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -222,9 +392,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{node_url}}/api/history/0700.HK?period=3m",
-                  "host": ["{{node_url}}"],
-                  "path": ["api","history","0700.HK"],
-                  "query": [{ "key": "period", "value": "3m" }]
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "history",
+                    "0700.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "3m"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -243,7 +424,15 @@
               "name": "Analytics health check",
               "request": {
                 "method": "GET",
-                "url": { "raw": "{{python_url}}/health", "host": ["{{python_url}}"], "path": ["health"] },
+                "url": {
+                  "raw": "{{python_url}}/health",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
+                },
                 "description": "Returns {\"status\": \"ok\"} if the FastAPI service is running."
               },
               "response": []
@@ -259,9 +448,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/summary?country=Japan",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","summary"],
-                  "query": [{ "key": "country", "value": "Japan", "description": "Filter by country name" }]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan",
+                      "description": "Filter by country name"
+                    }
+                  ]
                 },
                 "description": "Returns mean, median, std, min, max for latest close price and 5-day weekly return across all companies in the group. Filter by country OR sector (or neither for all)."
               },
@@ -273,9 +473,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/summary?sector=Financials",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","summary"],
-                  "query": [{ "key": "sector", "value": "Financials", "description": "Filter by sector name" }]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "sector",
+                      "value": "Financials",
+                      "description": "Filter by sector name"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -286,8 +497,13 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/summary",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","summary"]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "summary"
+                  ]
                 },
                 "description": "No filters — returns stats across all 272 companies."
               },
@@ -299,11 +515,22 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/summary?country=South Korea&sector=Information Technology",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","summary"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "summary"
+                  ],
                   "query": [
-                    { "key": "country", "value": "South Korea" },
-                    { "key": "sector",  "value": "Information Technology" }
+                    {
+                      "key": "country",
+                      "value": "South Korea"
+                    },
+                    {
+                      "key": "sector",
+                      "value": "Information Technology"
+                    }
                   ]
                 }
               },
@@ -320,11 +547,25 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/rolling/9988.HK?window=30&period=1y",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","rolling","9988.HK"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "rolling",
+                    "9988.HK"
+                  ],
                   "query": [
-                    { "key": "window", "value": "30",  "description": "Rolling window in trading days (2–200)" },
-                    { "key": "period", "value": "1y",  "description": "3m | 6m | 1y | 2y" }
+                    {
+                      "key": "window",
+                      "value": "30",
+                      "description": "Rolling window in trading days (2–200)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "3m | 6m | 1y | 2y"
+                    }
                   ]
                 },
                 "description": "Returns daily close prices + N-day rolling moving average. Each row: {date, close, maN}."
@@ -337,11 +578,23 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/rolling/005930.KS?window=7&period=6m",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","rolling","005930.KS"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "rolling",
+                    "005930.KS"
+                  ],
                   "query": [
-                    { "key": "window", "value": "7"  },
-                    { "key": "period", "value": "6m" }
+                    {
+                      "key": "window",
+                      "value": "7"
+                    },
+                    {
+                      "key": "period",
+                      "value": "6m"
+                    }
                   ]
                 }
               },
@@ -353,11 +606,23 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/rolling/7203.T?window=30&period=2y",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","rolling","7203.T"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "rolling",
+                    "7203.T"
+                  ],
                   "query": [
-                    { "key": "window", "value": "30" },
-                    { "key": "period", "value": "2y" }
+                    {
+                      "key": "window",
+                      "value": "30"
+                    },
+                    {
+                      "key": "period",
+                      "value": "2y"
+                    }
                   ]
                 }
               },
@@ -372,16 +637,30 @@
               "name": "Trigger email notification task",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{python_url}}/tasks/email",
-                  "host": ["{{python_url}}"],
-                  "path": ["tasks", "email"]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "email"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"users\": [\"admin@example.com\", \"analyst@example.com\", \"trader@example.com\"]\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Triggers send_email_notification task on email_queue.\n\nReturns task_id — copy it into the {{task_id}} collection variable to use with GET /tasks/status/{{task_id}}.\n\nThe task fetches top 5 weekly movers from PostgreSQL automatically and logs a simulated send for each user. Result is saved to task_results table and broadcast over WebSocket."
               },
@@ -394,8 +673,13 @@
                 "header": [],
                 "url": {
                   "raw": "{{python_url}}/tasks/analysis",
-                  "host": ["{{python_url}}"],
-                  "path": ["tasks", "analysis"]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "analysis"
+                  ]
                 },
                 "description": "Triggers run_market_analysis task on longrunning_queue.\n\nReturns task_id — copy it into the {{task_id}} collection variable.\n\nThe task runs a full analytics pass across all 272 companies, grouping by country and computing avg price, avg/best/worst weekly return per country. Result is saved to task_results table and broadcast over WebSocket."
               },
@@ -407,8 +691,14 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/tasks/status/{{task_id}}",
-                  "host": ["{{python_url}}"],
-                  "path": ["tasks", "status", "{{task_id}}"]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "status",
+                    "{{task_id}}"
+                  ]
                 },
                 "description": "Polls task status and result from Redis result backend.\n\nSet {{task_id}} in collection variables first (copy from POST /tasks/email or POST /tasks/analysis response).\n\nPossible statuses: PENDING → STARTED → SUCCESS | FAILURE.\nResult field is populated once the task is in SUCCESS or FAILURE state."
               },
@@ -420,9 +710,20 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/tasks/history?limit=20",
-                  "host": ["{{python_url}}"],
-                  "path": ["tasks", "history"],
-                  "query": [{ "key": "limit", "value": "20", "description": "Number of recent tasks to return (1–500, default 50)" }]
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Number of recent tasks to return (1–500, default 50)"
+                    }
+                  ]
                 },
                 "description": "Returns the most recent completed tasks from the PostgreSQL task_results table, ordered by completion time descending. Used by the admin dashboard to load history on page load."
               },
@@ -439,11 +740,25 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/forecast/9988.HK?days=30&period=1y",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","forecast","9988.HK"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "forecast",
+                    "9988.HK"
+                  ],
                   "query": [
-                    { "key": "days",   "value": "30", "description": "Forecast horizon in trading days (7–90)" },
-                    { "key": "period", "value": "1y", "description": "History window: 6m | 1y | 2y" }
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window: 6m | 1y | 2y"
+                    }
                   ]
                 },
                 "description": "Runs ARIMA(1,1,1) on historical close prices and returns forecast with 95% confidence interval.\n\nResponse includes:\n- history: [{date, actual}] — real prices used for training\n- forecast: [{date, predicted, lower, upper}] — N-day prediction with CI\n\nRequires at least 60 rows of history. Raises 422 if insufficient data."
@@ -456,11 +771,23 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/forecast/005930.KS?days=14&period=1y",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","forecast","005930.KS"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "forecast",
+                    "005930.KS"
+                  ],
                   "query": [
-                    { "key": "days",   "value": "14" },
-                    { "key": "period", "value": "1y" }
+                    {
+                      "key": "days",
+                      "value": "14"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    }
                   ]
                 }
               },
@@ -472,11 +799,23 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/forecast/7203.T?days=60&period=2y",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","forecast","7203.T"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "forecast",
+                    "7203.T"
+                  ],
                   "query": [
-                    { "key": "days",   "value": "60" },
-                    { "key": "period", "value": "2y" }
+                    {
+                      "key": "days",
+                      "value": "60"
+                    },
+                    {
+                      "key": "period",
+                      "value": "2y"
+                    }
                   ]
                 }
               },
@@ -488,13 +827,374 @@
                 "method": "GET",
                 "url": {
                   "raw": "{{python_url}}/analytics/forecast/0700.HK?days=7&period=6m",
-                  "host": ["{{python_url}}"],
-                  "path": ["analytics","forecast","0700.HK"],
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "forecast",
+                    "0700.HK"
+                  ],
                   "query": [
-                    { "key": "days",   "value": "7"  },
-                    { "key": "period", "value": "6m" }
+                    {
+                      "key": "days",
+                      "value": "7"
+                    },
+                    {
+                      "key": "period",
+                      "value": "6m"
+                    }
                   ]
                 }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Stage 2 — ML Models",
+          "item": [
+            {
+              "name": "Forecast — 9988.HK (ARIMA)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=arima&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "arima",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "ARIMA forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (ETS)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=ets&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "ets",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "ETS forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (SARIMA)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=sarima&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "sarima",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "SARIMA forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Prophet)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=prophet&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "prophet",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "Prophet forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Ridge)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=ridge&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "ridge",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "Ridge forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Random Forest)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=random_forest&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "random_forest",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "Random Forest forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (XGBoost)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=xgboost&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "xgboost",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7–90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "XGBoost forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
+              },
+              "response": []
+            },
+            {
+              "name": "Correlation — Japan",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/correlation?country=Japan&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "correlation"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan",
+                      "description": "Country name"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window — 3m | 6m | 1y | 2y"
+                    }
+                  ]
+                },
+                "description": "Pairwise Pearson correlation of daily returns across every company in the country, plus top 10 most correlated and top 10 most divergent pairs."
+              },
+              "response": []
+            },
+            {
+              "name": "Anomalies — Japan",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/anomalies?country=Japan&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "anomalies"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan",
+                      "description": "Country name"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window — 3m | 6m | 1y | 2y"
+                    }
+                  ]
+                },
+                "description": "Flags anomalous companies via IsolationForest over weekly-return vectors plus a per-company Z-score check."
+              },
+              "response": []
+            },
+            {
+              "name": "Clusters — n_clusters=5",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/clusters?n_clusters=5",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "clusters"
+                  ],
+                  "query": [
+                    {
+                      "key": "n_clusters",
+                      "value": "5",
+                      "description": "Number of clusters (2–10)"
+                    }
+                  ]
+                },
+                "description": "K-means clustering of all companies on mean_weekly_return + volatility (StandardScaler-normalized)."
               },
               "response": []
             }

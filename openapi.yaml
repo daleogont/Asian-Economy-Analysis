@@ -30,7 +30,15 @@ tags:
   - name: Rolling
     description: Daily close prices with N-day rolling moving average
   - name: Forecast
-    description: ARIMA(1,1,1) price forecasting with 95% confidence intervals
+    description: ARIMA(1,1,1) price forecasting with 95% confidence intervals (legacy, kept for backward compatibility)
+  - name: Models
+    description: Unified multi-model forecasting (ARIMA, ETS, SARIMA, Prophet, Ridge, Random Forest, XGBoost) with CE performance metrics
+  - name: Correlation
+    description: Pairwise Pearson correlation of daily returns across companies in a country
+  - name: Anomalies
+    description: Anomaly detection (IsolationForest + Z-score) on weekly returns across companies in a country
+  - name: Clusters
+    description: K-means clustering of all companies on return/volatility behavior
 
 paths:
 
@@ -262,6 +270,310 @@ paths:
               example:
                 detail: "Not enough data for XYZ — need 60 rows, got 12"
 
+  /analytics/models/forecast/{ticker}:
+    get:
+      tags: [Models]
+      summary: Multi-model price forecast with CE performance metrics
+      description: |
+        Unified forecast endpoint — routes to the requested model and returns predictions
+        plus CE (compute-efficiency) performance metrics: `inference_latency_ms`,
+        `train_time_s`, `memory_mb`, `rmse`, `mae`.
+
+        Every model is fit on the requested history window, evaluated on a 20% holdout
+        split for `rmse`/`mae`, then re-fit on the full series to produce the forward
+        `forecast` (predictions) array.
+
+        **Available models:**
+        - `arima` — ARIMA(1,1,1)
+        - `ets` — ETS / Holt-Winters (additive trend + seasonality, 5-day seasonal period)
+        - `sarima` — SARIMAX, order=(1,1,1), seasonal_order=(1,1,0,5)
+        - `prophet` — Meta Prophet (weekly + yearly seasonality, no daily seasonality)
+        - `ridge` — Ridge regression on lagged close prices (lags 1,2,3,5,10,20 + time index)
+        - `random_forest` — RandomForestRegressor (n_estimators=100) on the same lagged features
+        - `xgboost` — XGBRegressor (n_estimators=100, learning_rate=0.1) on the same lagged features, price-only prototype
+
+        This is the successor to `/analytics/forecast/{ticker}`, which remains available
+        (ARIMA-only, no `model` param, no CE metrics) for backward compatibility.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Yahoo Finance ticker symbol
+          schema:
+            type: string
+            example: 9988.HK
+        - name: model
+          in: query
+          required: false
+          description: Which model to run
+          schema:
+            type: string
+            default: arima
+            enum: [arima, ets, sarima, prophet, ridge, random_forest, xgboost]
+            example: arima
+        - name: days
+          in: query
+          required: false
+          description: Forecast horizon in trading days (7–90)
+          schema:
+            type: integer
+            default: 30
+            minimum: 7
+            maximum: 90
+            example: 30
+        - name: period
+          in: query
+          required: false
+          description: History window used for training — 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: Forecast result with CE metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelForecastResponse"
+              example:
+                ticker: 9988.HK
+                model: arima
+                days: 30
+                period: 1y
+                history:
+                  - date: "2026-08-19"
+                    actual: 126.05
+                forecast:
+                  - date: "2026-08-21"
+                    predicted: 126.85
+                    lower: 121.18
+                    upper: 132.30
+                metrics:
+                  model_name: arima
+                  rmse: 13.3555
+                  mae: 10.7978
+                  inference_latency_ms: 97.8
+                  train_time_s: 0.43
+                  memory_mb: 0.85
+        "400":
+          description: Unknown model name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                detail: "Unknown model 'lstm'. Available: ['arima', 'ets', 'prophet', 'random_forest', 'ridge', 'sarima', 'xgboost']"
+        "422":
+          description: Not enough historical data (need ≥ 60 rows)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/correlation:
+    get:
+      tags: [Correlation]
+      summary: Pairwise correlation of daily returns across a country's companies
+      description: |
+        Computes the pairwise Pearson correlation matrix of **daily returns** (not raw
+        price levels, to avoid spurious trend-driven correlation) across every company
+        in the given country, over the requested period.
+
+        Returns every valid pair plus the top 10 most correlated (`topCorrelated`) and
+        top 10 most divergent/anti-correlated (`leastCorrelated`) pairs, sorted by
+        correlation value.
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: Country name (e.g. `Japan`, `South Korea`, `Saudi Arabia`)
+          schema:
+            type: string
+            example: Japan
+        - name: period
+          in: query
+          required: false
+          description: History window — 3m | 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [3m, 6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: Correlation matrix computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorrelationResponse"
+              example:
+                country: Japan
+                period: 1y
+                tickers: ["1605.T", "4502.T", "8306.T"]
+                pairCount: 231
+                pairs:
+                  - ticker_a: 8801.T
+                    ticker_b: 8830.T
+                    correlation: 0.8023
+                topCorrelated:
+                  - ticker_a: 8801.T
+                    ticker_b: 8830.T
+                    correlation: 0.8023
+                leastCorrelated:
+                  - ticker_a: 2269.T
+                    ticker_b: 9984.T
+                    correlation: -0.2882
+                computation_time_ms: 20.05
+        "404":
+          description: No price data for the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Fewer than 2 tickers with data in the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/anomalies:
+    get:
+      tags: [Anomalies]
+      summary: Anomaly detection on weekly returns across a country's companies
+      description: |
+        Flags anomalous companies within a country by two independent methods:
+        - **IsolationForest** (`contamination=0.05`) over each company's weekly-return
+          time series (rows = companies, columns = weeks)
+        - a **Z-score** check on each company's latest weekly return vs its own
+          return history (`|z| > 2`)
+
+        `detection_method` reports which method(s) flagged the company:
+        `"isolation_forest"`, `"zscore"`, `"both"`, or `null` if not anomalous.
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: Country name
+          schema:
+            type: string
+            example: Japan
+        - name: period
+          in: query
+          required: false
+          description: History window — 3m | 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [3m, 6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: Anomaly scan computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnomalyResponse"
+              example:
+                country: Japan
+                period: 1y
+                companyCount: 22
+                anomalyCount: 2
+                companies:
+                  - ticker: 9984.T
+                    latest_weekly_return: -0.0613
+                    anomaly_score: 0.1119
+                    is_anomaly: true
+                    zscore: -0.7327
+                    detection_method: isolation_forest
+                computation_time_ms: 307.2
+        "404":
+          description: No price data for the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Fewer than 2 tickers with enough weekly history in the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/clusters:
+    get:
+      tags: [Clusters]
+      summary: K-means clustering of all companies on return/volatility behavior
+      description: |
+        Clusters every company (market-wide, no country filter) on two currency-neutral,
+        return-based features: `mean_weekly_return` and `volatility` (std of weekly
+        returns). Both are standardized (`StandardScaler`) before `KMeans` so neither
+        dominates due to raw magnitude.
+
+        Note: an earlier version also used raw local-currency `avg_close_price`
+        (min-max normalized), which caused currency-scale artifacts to dominate
+        clustering — that feature was removed.
+      parameters:
+        - name: n_clusters
+          in: query
+          required: false
+          description: Number of clusters (2–10)
+          schema:
+            type: integer
+            default: 5
+            minimum: 2
+            maximum: 10
+            example: 5
+        - name: period
+          in: query
+          required: false
+          description: History window used to compute return/volatility features — 3m | 6m | 1y | 2y
+          schema:
+            type: string
+            default: 1y
+            enum: [3m, 6m, 1y, 2y]
+            example: 1y
+      responses:
+        "200":
+          description: Clustering computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterResponse"
+              example:
+                n_clusters: 5
+                period: 1y
+                companyCount: 270
+                companies:
+                  - ticker: 0001.HK
+                    country: Hong Kong
+                    sector: Industrials
+                    cluster_id: 0
+                    mean_weekly_return: 0.0063
+                    volatility: 0.0325
+                cluster_summary:
+                  - cluster_id: 0
+                    size: 111
+                    mean_return: 0.0022
+                    mean_volatility: 0.0285
+                    dominant_country: Singapore
+                    dominant_sector: Consumer Staples
+                computation_time_ms: 2300.4
+        "404":
+          description: No price data found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Fewer companies with sufficient data than n_clusters requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
 
@@ -387,3 +699,230 @@ components:
         detail:
           type: string
           example: No data found for given filters
+
+    ForecastMetrics:
+      type: object
+      description: CE (compute-efficiency) performance metrics, computed identically for every model.
+      properties:
+        model_name:
+          type: string
+          example: arima
+        rmse:
+          type: number
+          nullable: true
+          description: Root mean squared error on a 20% holdout split
+          example: 13.3555
+        mae:
+          type: number
+          nullable: true
+          description: Mean absolute error on a 20% holdout split
+          example: 10.7978
+        inference_latency_ms:
+          type: number
+          description: Time to produce the forward forecast, in milliseconds
+          example: 97.8
+        train_time_s:
+          type: number
+          description: Time to fit the model on the full history, in seconds
+          example: 0.43
+        memory_mb:
+          type: number
+          description: Peak memory during fit+predict (max of tracemalloc peak and psutil RSS delta), in MB
+          example: 0.85
+
+    ModelForecastResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: 9988.HK
+        model:
+          type: string
+          example: arima
+        days:
+          type: integer
+          example: 30
+        period:
+          type: string
+          example: 1y
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryPoint"
+        forecast:
+          type: array
+          description: Forward predictions with 95% confidence interval bounds
+          items:
+            $ref: "#/components/schemas/ForecastPoint"
+        metrics:
+          $ref: "#/components/schemas/ForecastMetrics"
+
+    CorrelationPair:
+      type: object
+      properties:
+        ticker_a:
+          type: string
+          example: 8801.T
+        ticker_b:
+          type: string
+          example: 8830.T
+        correlation:
+          type: number
+          description: Pearson correlation coefficient of daily returns, -1 to 1
+          example: 0.8023
+
+    CorrelationResponse:
+      type: object
+      properties:
+        country:
+          type: string
+          example: Japan
+        period:
+          type: string
+          example: 1y
+        tickers:
+          type: array
+          items: { type: string }
+        pairCount:
+          type: integer
+          example: 231
+        pairs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CorrelationPair"
+        topCorrelated:
+          type: array
+          description: Top 10 most positively correlated pairs
+          items:
+            $ref: "#/components/schemas/CorrelationPair"
+        leastCorrelated:
+          type: array
+          description: Top 10 most divergent (most negatively correlated) pairs
+          items:
+            $ref: "#/components/schemas/CorrelationPair"
+        computation_time_ms:
+          type: number
+          example: 20.05
+
+    AnomalyCompany:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: 9984.T
+        latest_weekly_return:
+          type: number
+          description: Most recent weekly return, as a fraction (e.g. -0.0613 = -6.13%)
+          example: -0.0613
+        anomaly_score:
+          type: number
+          description: IsolationForest anomaly score — higher means more anomalous
+          example: 0.1119
+        is_anomaly:
+          type: boolean
+          example: true
+        zscore:
+          type: number
+          description: (latest_weekly_return - own mean) / own std
+          example: -0.7327
+        detection_method:
+          type: string
+          nullable: true
+          enum: [isolation_forest, zscore, both, null]
+          example: isolation_forest
+
+    AnomalyResponse:
+      type: object
+      properties:
+        country:
+          type: string
+          example: Japan
+        period:
+          type: string
+          example: 1y
+        companyCount:
+          type: integer
+          example: 22
+        anomalyCount:
+          type: integer
+          example: 2
+        companies:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnomalyCompany"
+        computation_time_ms:
+          type: number
+          example: 307.2
+
+    ClusterCompany:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: 0001.HK
+        country:
+          type: string
+          example: Hong Kong
+        sector:
+          type: string
+          example: Industrials
+        cluster_id:
+          type: integer
+          example: 0
+        mean_weekly_return:
+          type: number
+          example: 0.0063
+        volatility:
+          type: number
+          description: Standard deviation of weekly returns
+          example: 0.0325
+
+    ClusterSummaryItem:
+      type: object
+      properties:
+        cluster_id:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 111
+        mean_return:
+          type: number
+          nullable: true
+          example: 0.0022
+        mean_volatility:
+          type: number
+          nullable: true
+          example: 0.0285
+        dominant_country:
+          type: string
+          nullable: true
+          example: Singapore
+        dominant_sector:
+          type: string
+          nullable: true
+          example: Consumer Staples
+
+    ClusterResponse:
+      type: object
+      properties:
+        n_clusters:
+          type: integer
+          example: 5
+        period:
+          type: string
+          example: 1y
+        companyCount:
+          type: integer
+          example: 270
+        companies:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterCompany"
+        cluster_summary:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterSummaryItem"
+        computation_time_ms:
+          type: number
+          example: 2300.4

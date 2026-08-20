@@ -5,6 +5,7 @@ import SummaryStats from "../components/SummaryStats";
 import WeeklyReturnHistogram from "../components/WeeklyReturnHistogram";
 import PriceHistoryChart from "../components/PriceHistoryChart";
 import ForecastChart from "../components/ForecastChart";
+import ErrorBoundary from "../components/ErrorBoundary";
 import {
   BarChart,
   Bar,
@@ -191,10 +192,14 @@ const SectionPage = ({ sector }) => {
                         </button>
                       </div>
                       {activeTab === "history" && (
-                        <PriceHistoryChart ticker={c.ticker} />
+                        <ErrorBoundary label="Price history">
+                          <PriceHistoryChart ticker={c.ticker} />
+                        </ErrorBoundary>
                       )}
                       {activeTab === "forecast" && (
-                        <ForecastChart ticker={c.ticker} />
+                        <ErrorBoundary label="Forecast">
+                          <ForecastChart ticker={c.ticker} />
+                        </ErrorBoundary>
                       )}
                     </td>
                   </tr>

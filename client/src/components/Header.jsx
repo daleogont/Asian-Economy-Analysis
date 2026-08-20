@@ -53,7 +53,7 @@ const Header = () => {
       </header>
 
       {isSidebarOpen && (
-        <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 pt-16 overflow-y-auto transition-all duration-300">
+        <div className="fixed top-0 left-0 h-full w-72 bg-white shadow-lg z-50 pt-16 overflow-y-auto transition-all duration-300">
           <nav className="text-black text-base font-medium px-4 space-y-2">
             <Link
               to="/"
@@ -83,7 +83,7 @@ const Header = () => {
                       <Link
                         to={s.path}
                         onClick={() => setIsSidebarOpen(false)}
-                        className="block px-2 py-1 hover:bg-gray-100 rounded capitalize"
+                        className="block px-2 py-1 hover:bg-gray-100 rounded capitalize whitespace-nowrap"
                       >
                         {s.name}
                       </Link>
@@ -112,7 +112,7 @@ const Header = () => {
                       <Link
                         to={c.path}
                         onClick={() => setIsSidebarOpen(false)}
-                        className="block px-2 py-1 hover:bg-gray-100 rounded capitalize"
+                        className="block px-2 py-1 hover:bg-gray-100 rounded capitalize whitespace-nowrap"
                       >
                         {c.name}
                       </Link>

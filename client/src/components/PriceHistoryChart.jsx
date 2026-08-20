@@ -25,7 +25,7 @@ const PriceHistoryChart = ({ ticker }) => {
     const w = maWindow ?? 30;
     axios
       .get(`/analytics/rolling/${ticker}?period=${period}&window=${w}`)
-      .then((res) => setData(res.data.data))
+      .then((res) => setData(res.data?.data ?? []))
       .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [ticker, period, maWindow]);
@@ -78,6 +78,10 @@ const PriceHistoryChart = ({ ticker }) => {
       {loading ? (
         <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
           Loading…
+        </div>
+      ) : data.length === 0 ? (
+        <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
+          No data available for {ticker}.
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={240}>

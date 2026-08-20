@@ -11,7 +11,8 @@
     "start": "node server/server.js",
     "seed": "node scripts/seedCompanies.js",
     "collect": "node scripts/collectHistory.js",
-    "collect:fundamentals": "node scripts/collectFundamentals.js"
+    "collect:fundamentals": "node scripts/collectFundamentals.js",
+    "backfill": "node scripts/backfillHistory.js"
   },
   "keywords": [],
   "author": "",

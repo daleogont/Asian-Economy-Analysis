@@ -4,6 +4,20 @@ const pool  = require("./db");
 const INTERVAL_MS = 8000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://python-api:8000";
+
+// Cached random_forest/xgboost forecasts are keyed off price data that this
+// delta fetch may have just changed, so flush them once new rows land.
+async function invalidateForecastCache() {
+  try {
+    const resp = await axios.delete(`${PYTHON_API_URL}/internal/cache/invalidate`, { timeout: 10000 });
+    const deleted = resp.data?.deleted ?? 0;
+    console.log(`🗑️  Forecast cache invalidated — ${deleted} keys deleted`);
+  } catch (err) {
+    console.warn(`⚠️  Cache invalidation failed: ${err.message?.slice(0, 100)}`);
+  }
+}
+
 const HEADERS = {
   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   Accept: "application/json, text/plain, */*",
@@ -74,6 +88,7 @@ async function runDeltaFetch() {
 
     if (toUpdate.length === 0) {
       console.log("📦 All tickers up to date — skipping delta fetch");
+      // Nothing changed, so cached forecasts are still valid — no invalidation needed.
       return;
     }
 
@@ -99,6 +114,7 @@ async function runDeltaFetch() {
     }
 
     console.log(`\n✅ Delta fetch done — ${totalRows} new rows added`);
+    await invalidateForecastCache();
   } finally {
     client.release();
   }

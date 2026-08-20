@@ -1,8 +1,11 @@
+import json
+import logging
 import warnings
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 
+from app.cache import forecast_cache_key, redis_client
 from app.db import engine, fetch_df
 from app.models.arima import ArimaModel
 from app.models.ets import EtsModel
@@ -13,6 +16,8 @@ from app.models.sarima import SarimaModel
 from app.models.xgboost_model import XgboostModel
 
 warnings.filterwarnings("ignore")
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -33,9 +38,16 @@ MODEL_REGISTRY = {
 # feature vector to enrich, so `enriched=true` is silently a no-op for them.
 ENRICHABLE_MODELS = {"ridge", "random_forest", "xgboost"}
 
+# Only these two are slow enough (RF/XGBoost's iterative multi-step predict
+# loop) to be worth caching — everything else responds in well under 200ms
+# already, so caching would add complexity for no real benefit.
+CACHEABLE_MODELS = {"random_forest", "xgboost"}
+CACHE_TTL_SECONDS = 86400  # 24h — invalidated early by the nightly delta fetch
+
 
 @router.get("/models/forecast/{ticker}")
 def forecast_with_model(
+    response: Response,
     ticker: str,
     model:    str  = Query("arima"),
     days:     int  = Query(30, ge=7, le=90),
@@ -51,12 +63,33 @@ def forecast_with_model(
     lag features (Stage 2) to lag features + fundamentals + macro features
     (Stage 3). Ignored for arima/ets/sarima/prophet, which fit on the raw
     series and have no feature vector to enrich.
+
+    random_forest/xgboost responses are cached in Redis for 24h (key:
+    `forecast:{ticker}:{model}:{days}:{period}:{enriched}`), since their
+    iterative multi-step predict loop is meaningfully slower than every
+    other model. `X-Cache: HIT`/`MISS` is set on cached responses; the
+    nightly delta fetch flushes the whole `forecast:*` keyspace once new
+    price data lands (`DELETE /internal/cache/invalidate`).
     """
     if model not in MODEL_REGISTRY:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown model '{model}'. Available: {sorted(MODEL_REGISTRY)}",
         )
+
+    use_enriched = enriched and model in ENRICHABLE_MODELS
+    cacheable = model in CACHEABLE_MODELS
+    cache_key = forecast_cache_key(ticker.upper(), model, days, period, use_enriched) if cacheable else None
+
+    if cacheable:
+        try:
+            cached = redis_client.get(cache_key)
+        except Exception as exc:
+            logger.warning("Redis GET failed for %s: %s", cache_key, exc)
+            cached = None
+        if cached is not None:
+            response.headers["X-Cache"] = "HIT"
+            return json.loads(cached)
 
     days_map = {"6m": 180, "1y": 365, "2y": 730, "5y": 1825}
     history_days = days_map.get(period, 365)
@@ -85,7 +118,6 @@ def forecast_with_model(
 
     series = df["close"]
 
-    use_enriched = enriched and model in ENRICHABLE_MODELS
     if use_enriched:
         country_df = fetch_df("SELECT country FROM companies WHERE ticker = :ticker", {"ticker": ticker.upper()})
         if country_df.empty:
@@ -118,7 +150,7 @@ def forecast_with_model(
         for i in range(len(forecast["dates"]))
     ]
 
-    return {
+    payload = {
         "ticker":   ticker.upper(),
         "model":    result["model_name"],
         "days":     days,
@@ -128,3 +160,12 @@ def forecast_with_model(
         "forecast": predictions,
         "metrics":  result["metrics"],
     }
+
+    if cacheable:
+        try:
+            redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(payload))
+        except Exception as exc:
+            logger.warning("Redis SETEX failed for %s: %s", cache_key, exc)
+        response.headers["X-Cache"] = "MISS"
+
+    return payload

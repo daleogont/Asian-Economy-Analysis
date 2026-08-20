@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, ChevronRight, ChevronDown, Home, BookOpen } from "lucide-react";
+import { Menu, ChevronRight, ChevronDown, Home, BookOpen, BarChart2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -129,6 +129,15 @@ const Header = () => {
             >
               <BookOpen className="w-5 h-5" />
               <span>Research</span>
+            </Link>
+
+            <Link
+              to="/model-comparison"
+              className="flex items-center space-x-2 hover:bg-gray-100 px-2 py-2 rounded"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <BarChart2 className="w-5 h-5" />
+              <span>Model Comparison</span>
             </Link>
 
           </nav>

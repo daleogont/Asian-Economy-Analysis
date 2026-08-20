@@ -21,6 +21,7 @@ const MODEL_OPTIONS = [
   { key: "prophet",       label: "Prophet" },
   { key: "ridge",         label: "Ridge" },
   { key: "random_forest", label: "Random Forest" },
+  { key: "lstm",          label: "LSTM" },
   { key: "xgboost",       label: "XGBoost" },
 ];
 
@@ -116,8 +117,13 @@ const ForecastChart = ({ ticker }) => {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
-          Running {modelLabel} model…
+        <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-sm text-center">
+          <span>Running {modelLabel} model…</span>
+          {model === "lstm" && (
+            <span className="mt-1 text-xs text-gray-400">
+              First run may take ~45s (training); subsequent requests load instantly from cache.
+            </span>
+          )}
         </div>
       )}
       {error && (

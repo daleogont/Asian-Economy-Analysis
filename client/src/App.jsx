@@ -9,6 +9,7 @@ import Loader from "./components/Loader";
 
 import Home from "./pages/Home";
 import Research from "./pages/Research";
+import ModelComparison from "./pages/ModelComparison";
 import Sections from "./pages/Sections";
 import Finance from "./pages/section/Finance";
 import Technology from "./pages/section/Technology";
@@ -70,6 +71,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/research" element={<Research />} />
+        <Route path="/model-comparison" element={<ModelComparison />} />
         <Route path="/sections" element={<Sections />} />
         <Route path="/section/financials" element={<Finance />} />
         <Route path="/section/information-technology" element={<Technology />} />

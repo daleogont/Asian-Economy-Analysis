@@ -9,6 +9,7 @@ from app.cache import forecast_cache_key, redis_client
 from app.db import engine, fetch_df
 from app.models.arima import ArimaModel
 from app.models.ets import EtsModel
+from app.models.lstm import LstmModel
 from app.models.prophet import ProphetModel
 from app.models.random_forest import RandomForestModel
 from app.models.ridge import RidgeModel
@@ -31,17 +32,25 @@ MODEL_REGISTRY = {
     "ridge":         RidgeModel,
     "random_forest": RandomForestModel,
     "xgboost":       XgboostModel,
+    "lstm":          LstmModel,
 }
+
+# LSTM needs a longer minimum history than the other models: its 60-day
+# lookback window alone eats most of MIN_ROWS, leaving too few sequences to
+# train on.
+MODEL_MIN_ROWS = {"lstm": 120}
 
 # Only the lagged-feature (sklearn-style) models take fundamentals/macro
 # features — ARIMA/ETS/SARIMA/Prophet fit on the raw series and have no
 # feature vector to enrich, so `enriched=true` is silently a no-op for them.
+# LSTM is also excluded: it consumes price history as a raw sequence, not a
+# feature vector.
 ENRICHABLE_MODELS = {"ridge", "random_forest", "xgboost"}
 
-# Only these two are slow enough (RF/XGBoost's iterative multi-step predict
-# loop) to be worth caching — everything else responds in well under 200ms
-# already, so caching would add complexity for no real benefit.
-CACHEABLE_MODELS = {"random_forest", "xgboost"}
+# Slow enough (RF/XGBoost's iterative multi-step predict loop; LSTM's
+# training pass) to be worth caching — everything else responds in well
+# under 200ms already, so caching would add complexity for no real benefit.
+CACHEABLE_MODELS = {"random_forest", "xgboost", "lstm"}
 CACHE_TTL_SECONDS = 86400  # 24h — invalidated early by the nightly delta fetch
 
 
@@ -64,12 +73,13 @@ def forecast_with_model(
     (Stage 3). Ignored for arima/ets/sarima/prophet, which fit on the raw
     series and have no feature vector to enrich.
 
-    random_forest/xgboost responses are cached in Redis for 24h (key:
-    `forecast:{ticker}:{model}:{days}:{period}:{enriched}`), since their
-    iterative multi-step predict loop is meaningfully slower than every
-    other model. `X-Cache: HIT`/`MISS` is set on cached responses; the
-    nightly delta fetch flushes the whole `forecast:*` keyspace once new
-    price data lands (`DELETE /internal/cache/invalidate`).
+    random_forest/xgboost/lstm responses are cached in Redis for 24h (key:
+    `forecast:{ticker}:{model}:{days}:{period}:{enriched}`), since they're
+    meaningfully slower than every other model (RF/XGBoost's iterative
+    multi-step predict loop; LSTM's training pass). `X-Cache: HIT`/`MISS`
+    is set on cached responses; the nightly delta fetch flushes the whole
+    `forecast:*` keyspace once new price data lands
+    (`DELETE /internal/cache/invalidate`).
     """
     if model not in MODEL_REGISTRY:
         raise HTTPException(
@@ -106,10 +116,11 @@ def forecast_with_model(
         {"ticker": ticker.upper(), "days": history_days},
     )
 
-    if len(df) < MIN_ROWS:
+    min_rows = MODEL_MIN_ROWS.get(model, MIN_ROWS)
+    if len(df) < min_rows:
         raise HTTPException(
             status_code=422,
-            detail=f"Not enough data for {ticker} — need {MIN_ROWS} rows, got {len(df)}",
+            detail=f"Not enough data for {ticker} — need {min_rows} rows, got {len(df)}",
         )
 
     df["date"]  = pd.to_datetime(df["date"])

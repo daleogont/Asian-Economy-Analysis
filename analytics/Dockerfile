@@ -6,6 +6,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+# Must happen before `pip install -r requirements.txt` and as its own index
+# URL: installing the CPU-only build this way means when requirements.txt
+# (which pins the same torch==2.1.2+cpu version) is processed next, pip
+# sees the pin already satisfied by what's installed and never touches the
+# default PyPI index for torch — which only carries the full CUDA build
+# (2GB+) under that name.
+RUN pip install --no-cache-dir torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 # The prophet wheel ships a precompiled prophet_model.bin (statically linked
 # against its own bundled TBB libs, see prophet.libs/) alongside a broken,

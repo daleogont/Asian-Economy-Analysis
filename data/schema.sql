@@ -31,6 +31,16 @@ CREATE TABLE IF NOT EXISTS forecasts (
     UNIQUE (ticker, forecast_date, model)
 );
 
+CREATE TABLE IF NOT EXISTS task_results (
+    task_id      VARCHAR     PRIMARY KEY,
+    operation    VARCHAR     NOT NULL,
+    input_data   JSONB,
+    result       JSONB,
+    status       VARCHAR     NOT NULL,
+    completed_at TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_daily_prices_ticker      ON daily_prices (ticker);
 CREATE INDEX IF NOT EXISTS idx_daily_prices_date        ON daily_prices (date);
 CREATE INDEX IF NOT EXISTS idx_daily_prices_ticker_date ON daily_prices (ticker, date DESC);

@@ -41,6 +41,16 @@ CREATE TABLE IF NOT EXISTS task_results (
     created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS fundamentals (
+    ticker          VARCHAR(20) PRIMARY KEY REFERENCES companies(ticker),
+    pe_ratio        NUMERIC,
+    eps             NUMERIC,
+    dividend_yield  NUMERIC,
+    beta            NUMERIC,
+    market_cap      BIGINT,
+    fetched_at      TIMESTAMP DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_daily_prices_ticker      ON daily_prices (ticker);
 CREATE INDEX IF NOT EXISTS idx_daily_prices_date        ON daily_prices (date);
 CREATE INDEX IF NOT EXISTS idx_daily_prices_ticker_date ON daily_prices (ticker, date DESC);

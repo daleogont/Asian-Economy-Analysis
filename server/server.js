@@ -12,6 +12,7 @@ const topMoversRouter    = require("./routes/topMovers");
 const sectorLeadersRouter  = require("./routes/sectorLeaders");
 const marketOverviewRouter = require("./routes/marketOverview");
 const historyRouter        = require("./routes/history");
+const fundamentalsRouter   = require("./routes/fundamentals");
 
 const cron               = require("node-cron");
 const { prewarmCache }   = require("./utils/dataService");
@@ -32,6 +33,7 @@ app.use("/api/sector-leaders",   sectorLeadersRouter);
 app.use("/api/market-overview",  marketOverviewRouter);
 app.use("/api/health",           healthRouter);
 app.use("/api/history",          historyRouter);
+app.use("/api/fundamentals",     fundamentalsRouter);
 
 // Serve React build in production
 if (process.env.NODE_ENV === "production") {

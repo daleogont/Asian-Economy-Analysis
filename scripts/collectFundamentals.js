@@ -1,68 +1,25 @@
 require("dotenv").config();
-const { execFile } = require("child_process");
-const { promisify } = require("util");
-const pool = require("../server/utils/db");
+const axios = require("axios");
+const pool  = require("../server/utils/db");
 
-const execFileAsync = promisify(execFile);
-
-const INTERVAL_MS   = 1000;
-const PYTHON_BIN    = process.env.PYTHON_BIN || "python3";
+const INTERVAL_MS      = 1000;
 const FETCH_TIMEOUT_MS = 20000;
+const PYTHON_API_URL   = process.env.PYTHON_API_URL || "http://localhost:8000";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Spawned as `python3 -c <PYTHON_SCRIPT> <ticker>` — the ticker is passed as
-// an argv, not interpolated into the script string, so no shell-quoting risk.
-const PYTHON_SCRIPT = `
-import sys, json
-
-try:
-    import yfinance as yf
-except ImportError:
-    print(json.dumps({"error": "yfinance not installed — pip install yfinance"}))
-    sys.exit(1)
-
-ticker = sys.argv[1]
-
-try:
-    info = yf.Ticker(ticker).info or {}
-except Exception as e:
-    print(json.dumps({"error": str(e)}))
-    sys.exit(0)
-
-print(json.dumps({
-    "pe_ratio":       info.get("trailingPE"),
-    "eps":            info.get("trailingEps"),
-    "dividend_yield": info.get("dividendYield"),
-    "beta":           info.get("beta"),
-    "market_cap":     info.get("marketCap"),
-}))
-`;
-
+// Fundamentals are fetched by the python-api container (via yfinance) rather
+// than spawning a local python3 subprocess, so yfinance only needs to be
+// installed there — not on whatever host runs this script.
 async function fetchFundamentals(ticker) {
   try {
-    const { stdout } = await execFileAsync(
-      PYTHON_BIN,
-      ["-c", PYTHON_SCRIPT, ticker],
-      { timeout: FETCH_TIMEOUT_MS, maxBuffer: 1024 * 1024 }
+    const { data } = await axios.get(
+      `${PYTHON_API_URL}/internal/fundamentals/${encodeURIComponent(ticker)}`,
+      { timeout: FETCH_TIMEOUT_MS }
     );
-    const data = JSON.parse(stdout.trim());
     if (data.error) return { error: data.error };
     return data;
   } catch (err) {
-    // The python helper prints a clean {"error": "..."} JSON line even when
-    // it sys.exit(1)s (e.g. ImportError) — that still rejects execFile, but
-    // util.promisify(execFile) attaches the captured stdout to the rejected
-    // error, so recover the real message from there instead of err.message
-    // (which is the whole "Command failed: python3 -c <full script>...").
-    if (err.stdout) {
-      try {
-        const data = JSON.parse(err.stdout.trim());
-        if (data.error) return { error: data.error };
-      } catch {
-        // stdout wasn't valid JSON either — fall through to the generic message
-      }
-    }
-    const message = err.killed ? "timed out" : err.message?.split("\n")[0];
+    const message = err.response?.data?.detail ?? err.message;
     return { error: message?.slice(0, 120) ?? "unknown error" };
   }
 }

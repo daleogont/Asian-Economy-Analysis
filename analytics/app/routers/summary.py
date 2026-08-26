@@ -28,15 +28,16 @@ def summary(
 
     df = fetch_df(f"""
         WITH latest AS (
-            SELECT DISTINCT ON (ticker) ticker, close
+            SELECT DISTINCT ON (ticker) ticker, close, date
             FROM daily_prices
             ORDER BY ticker, date DESC
         ),
         week_ago AS (
-            SELECT DISTINCT ON (ticker) ticker, close AS week_close
-            FROM daily_prices
-            WHERE date <= CURRENT_DATE - INTERVAL '5 days'
-            ORDER BY ticker, date DESC
+            SELECT DISTINCT ON (dp.ticker) dp.ticker, dp.close AS week_close
+            FROM daily_prices dp
+            JOIN latest l ON l.ticker = dp.ticker
+            WHERE dp.date <= l.date - INTERVAL '5 days'
+            ORDER BY dp.ticker, dp.date DESC
         )
         SELECT
             c.ticker, c.country, c.sector,

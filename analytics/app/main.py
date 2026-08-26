@@ -4,6 +4,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import pandas as pd
 import redis.asyncio as aioredis
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,10 +12,12 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
-from app.db import engine
+from app.db import engine, fetch_df
+from app.models.lstm import LstmModel
 from app.routers import analytics_ml, forecast, internal, models, rolling, summary
 from app.routers import tasks as tasks_router
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 REDIS_URL      = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
@@ -83,16 +86,57 @@ def _ensure_task_results_table() -> None:
         conn.commit()
 
 
+def _fit_lstm_warmup() -> None:
+    """Blocking work for warmup_lstm() — run off the event loop via asyncio.to_thread."""
+    df = fetch_df(
+        """
+        SELECT date, close
+        FROM daily_prices
+        WHERE ticker = :ticker
+          AND date >= CURRENT_DATE - INTERVAL '365 days'
+          AND close IS NOT NULL
+        ORDER BY date ASC
+        """,
+        {"ticker": "9988.HK"},
+    )
+    df["date"]  = pd.to_datetime(df["date"])
+    df["close"] = df["close"].astype(float)
+    df = df.set_index("date").asfreq("B").ffill()
+
+    LstmModel().fit(df["close"])
+
+
+async def warmup_lstm() -> None:
+    """
+    Fire-and-forget: pays PyTorch's one-time CPU-backend warm-up cost
+    (observed 60-150s, landing unpredictably in either training or
+    inference) at container startup instead of on a user's first real
+    LSTM request. `fit()` is blocking/CPU-bound, so it runs in a thread
+    via asyncio.to_thread — otherwise it would freeze the event loop
+    (including /health) for the whole warm-up window. Never allowed to
+    affect startup or crash the app if it fails.
+    """
+    await asyncio.sleep(10)  # let the container finish settling first
+    try:
+        await asyncio.to_thread(_fit_lstm_warmup)
+        logger.info("LSTM warm-up complete")
+    except Exception as exc:
+        logger.warning("LSTM warm-up failed: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _ensure_task_results_table()
     listener = asyncio.create_task(_redis_listener())
+    warmup   = asyncio.create_task(warmup_lstm())
     yield
     listener.cancel()
-    try:
-        await listener
-    except asyncio.CancelledError:
-        pass
+    warmup.cancel()
+    for task in (listener, warmup):
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(title="Asian Capital Markets Analytics API", lifespan=lifespan)

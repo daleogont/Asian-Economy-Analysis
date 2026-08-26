@@ -23,5 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN rm -rf "$(python -c 'import prophet, os; print(os.path.dirname(prophet.__file__))')/stan_model/cmdstan-2.33.1"
 
 COPY app/ ./app/
+COPY scripts/ ./scripts/
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

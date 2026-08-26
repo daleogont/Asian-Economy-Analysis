@@ -39,6 +39,8 @@ tags:
     description: Anomaly detection (IsolationForest + Z-score) on weekly returns across companies in a country
   - name: Clusters
     description: K-means clustering of all companies on return/volatility behavior
+  - name: Internal
+    description: Internal-only endpoints (no auth) — called by other services in this stack, not meant for external clients.
 
 paths:
 
@@ -291,10 +293,25 @@ paths:
         - `prophet` — Meta Prophet (weekly + yearly seasonality, no daily seasonality)
         - `ridge` — Ridge regression on lagged close prices (lags 1,2,3,5,10,20 + time index)
         - `random_forest` — RandomForestRegressor (n_estimators=100) on the same lagged features
-        - `xgboost` — XGBRegressor (n_estimators=100, learning_rate=0.1) on the same lagged features, price-only prototype
+        - `xgboost` — XGBRegressor (n_estimators=100, learning_rate=0.1) on the same lagged features
+        - `lstm` — 2-layer PyTorch LSTM (hidden_size=64, dropout=0.2) over MinMax-normalized
+          close prices, 60-day lookback window, 50 epochs. Needs ≥120 rows of history
+          (vs. 60 for every other model). Slowest model in the stack — see caching below.
+
+        `enriched=true` switches `ridge`/`random_forest`/`xgboost` from price-only lag
+        features to lag features **+ fundamentals** (`beta`, `pe_ratio`, `log_market_cap`,
+        `dividend_yield`, from the `fundamentals` table) **+ macro** (`log_gdp`,
+        `unemployment`, from the Node API's `/api/macros`). Silently ignored for
+        `arima`/`ets`/`sarima`/`prophet`/`lstm`, which have no feature vector to enrich.
+
+        `random_forest`/`xgboost`/`lstm` responses are cached in Redis for 24h
+        (key: `forecast:{ticker}:{model}:{days}:{period}:{enriched}`) since they're
+        markedly slower than the other models — a `X-Cache: HIT`/`MISS` response header
+        reports whether this request hit the cache. The cache is flushed by the nightly
+        delta-fetch job once new price data lands.
 
         This is the successor to `/analytics/forecast/{ticker}`, which remains available
-        (ARIMA-only, no `model` param, no CE metrics) for backward compatibility.
+        (ARIMA-only, no `model`/`enriched` params, no CE metrics) for backward compatibility.
       parameters:
         - name: ticker
           in: path
@@ -310,7 +327,7 @@ paths:
           schema:
             type: string
             default: arima
-            enum: [arima, ets, sarima, prophet, ridge, random_forest, xgboost]
+            enum: [arima, ets, sarima, prophet, ridge, random_forest, xgboost, lstm]
             example: arima
         - name: days
           in: query
@@ -331,9 +348,25 @@ paths:
             default: 1y
             enum: [6m, 1y, 2y, 5y]
             example: 1y
+        - name: enriched
+          in: query
+          required: false
+          description: >-
+            Add fundamentals + macro features for ridge/random_forest/xgboost
+            (ignored for arima/ets/sarima/prophet/lstm).
+          schema:
+            type: boolean
+            default: false
+            example: false
       responses:
         "200":
           description: Forecast result with CE metrics
+          headers:
+            X-Cache:
+              description: Only present for random_forest/xgboost/lstm.
+              schema:
+                type: string
+                enum: [HIT, MISS]
           content:
             application/json:
               schema:
@@ -343,6 +376,7 @@ paths:
                 model: arima
                 days: 30
                 period: 1y
+                enriched: false
                 history:
                   - date: "2026-08-19"
                     actual: 126.05
@@ -365,9 +399,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                detail: "Unknown model 'lstm'. Available: ['arima', 'ets', 'prophet', 'random_forest', 'ridge', 'sarima', 'xgboost']"
+                detail: "Unknown model 'lightgbm'. Available: ['arima', 'ets', 'lstm', 'prophet', 'random_forest', 'ridge', 'sarima', 'xgboost']"
         "422":
-          description: Not enough historical data (need ≥ 60 rows)
+          description: Not enough historical data (need ≥ 60 rows, ≥120 for lstm)
           content:
             application/json:
               schema:
@@ -575,6 +609,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /internal/fundamentals/{ticker}:
+    get:
+      tags: [Internal]
+      summary: Live fundamentals fetch via yfinance (internal only)
+      description: |
+        Fetches live fundamentals for one ticker via yfinance, running inside this
+        container so yfinance only needs to be installed here — not on whatever host
+        runs `scripts/collectFundamentals.js`, which calls this endpoint once per
+        ticker and upserts the result into the `fundamentals` table.
+
+        Always returns 200 with all fields `null` (plus an `error` string) if the
+        yfinance fetch itself fails — never propagates that as an HTTP error, since
+        the caller treats missing fundamentals as an expected, storable outcome.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 9988.HK
+      responses:
+        "200":
+          description: Fundamentals fetched (or a clean per-field-null failure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalFundamentals"
+              example:
+                pe_ratio: 19.71875
+                eps: 6.4
+                dividend_yield: 0.83
+                beta: 0.51
+                market_cap: 2419883769856
+
+  /internal/cache/invalidate:
+    delete:
+      tags: [Internal]
+      summary: Flush all cached forecasts (internal only)
+      description: |
+        Deletes every `forecast:*` key from Redis (SCAN + DELETE, not the blocking
+        `KEYS` command). Called by `server/utils/deltaFetch.js` after a delta fetch
+        actually adds new price rows, so cached `random_forest`/`xgboost`/`lstm`
+        forecasts never outlive the price data they were computed from. Not called
+        when the delta fetch finds nothing to update — the cache is still valid.
+      responses:
+        "200":
+          description: Cache flushed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                    description: Number of forecast:* keys removed
+                    example: 2
+
 components:
   schemas:
 
@@ -746,6 +837,10 @@ components:
         period:
           type: string
           example: 1y
+        enriched:
+          type: boolean
+          description: Whether fundamentals+macro features were actually used (false for models that don't support it, even if requested).
+          example: false
         history:
           type: array
           items:
@@ -927,3 +1022,31 @@ components:
         computation_time_ms:
           type: number
           example: 2300.4
+
+    InternalFundamentals:
+      type: object
+      properties:
+        pe_ratio:
+          type: number
+          nullable: true
+          example: 19.71875
+        eps:
+          type: number
+          nullable: true
+          example: 6.4
+        dividend_yield:
+          type: number
+          nullable: true
+          example: 0.83
+        beta:
+          type: number
+          nullable: true
+          example: 0.51
+        market_cap:
+          type: integer
+          nullable: true
+          example: 2419883769856
+        error:
+          type: string
+          nullable: true
+          description: Present only if the underlying yfinance fetch failed — all other fields are null in that case.

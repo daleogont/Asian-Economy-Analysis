@@ -1199,6 +1199,249 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "Stage 3 — Advanced Features",
+          "item": [
+            {
+              "name": "Forecast — 9988.HK (LSTM)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=lstm&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "lstm",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7-90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "Forecast — 9988.HK (LSTM) — Stage 3."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (LSTM, 5y — slow path)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=lstm&days=30&period=5y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "lstm",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7-90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "5y",
+                      "description": "History window used for training"
+                    }
+                  ]
+                },
+                "description": "5-year LSTM forecast — exercises the slow/cold-cache path (can take 30-150s+ on a cold Redis cache; nginx's /analytics/ proxy timeout is 240s to cover this)."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Ridge, Enriched)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=ridge&days=30&period=1y&enriched=true",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "ridge",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7-90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    },
+                    {
+                      "key": "enriched",
+                      "value": "true",
+                      "description": "Add fundamentals + macro features"
+                    }
+                  ]
+                },
+                "description": "Forecast — 9988.HK (Ridge, Enriched) — Stage 3."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Random Forest, Enriched)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=random_forest&days=30&period=1y&enriched=true",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "random_forest",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7-90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    },
+                    {
+                      "key": "enriched",
+                      "value": "true",
+                      "description": "Add fundamentals + macro features"
+                    }
+                  ]
+                },
+                "description": "Forecast — 9988.HK (Random Forest, Enriched) — Stage 3."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (XGBoost, Enriched)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=xgboost&days=30&period=1y&enriched=true",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "xgboost",
+                      "description": "Which model to run"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30",
+                      "description": "Forecast horizon in trading days (7-90)"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y",
+                      "description": "History window used for training"
+                    },
+                    {
+                      "key": "enriched",
+                      "value": "true",
+                      "description": "Add fundamentals + macro features"
+                    }
+                  ]
+                },
+                "description": "Forecast — 9988.HK (XGBoost, Enriched) — Stage 3."
+              },
+              "response": []
+            },
+            {
+              "name": "Internal — Fundamentals (9988.HK)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/internal/fundamentals/9988.HK",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "internal",
+                    "fundamentals",
+                    "9988.HK"
+                  ]
+                },
+                "description": "Internal-only (no auth) — live yfinance fetch used by scripts/collectFundamentals.js."
+              },
+              "response": []
+            },
+            {
+              "name": "Internal — Invalidate Forecast Cache",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{python_url}}/internal/cache/invalidate",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "internal",
+                    "cache",
+                    "invalidate"
+                  ]
+                },
+                "description": "Internal-only (no auth) — flushes all forecast:* Redis keys. Called by server/utils/deltaFetch.js after a real delta fetch."
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }

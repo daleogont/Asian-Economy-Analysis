@@ -7,6 +7,7 @@ import pandas as pd
 import redis
 from sqlalchemy import text
 
+from app.batch_benchmark import friedman_wilcoxon_holm, run_one, summarize
 from app.celery_app import celery_app
 from app.db import engine, fetch_df
 from app.validation import run_rolling_origin
@@ -222,4 +223,66 @@ def run_rolling_validation(
     logger.info("[ROLLING] task_id=%s  status=%s", task_id, status)
     _save_result(task_id, "run_rolling_validation", input_data, result, status)
     _publish(task_id, "run_rolling_validation", status, result)
+    return result
+
+
+@celery_app.task(bind=True, name="app.tasks.run_batch_benchmark", soft_time_limit=1500, time_limit=1800)
+def run_batch_benchmark(self, tickers: list, models: list, horizon: int, period: str, period_days: int, stats: bool):
+    """
+    Runs every (ticker, model) pair through the single-holdout benchmark
+    protocol already used elsewhere (BaseForecastModel.run()). Reports
+    progress via Celery's own state so the frontend can show a bar instead
+    of a spinner. Bounded by a per-task time limit (soft 25min/hard 30min)
+    since a large ticker x model grid can otherwise run indefinitely.
+    """
+    task_id = self.request.id
+    input_data = {"tickers": tickers, "models": models, "horizon": horizon, "period": period, "stats": stats}
+    logger.info("[BATCH] task_id=%s  n_tickers=%d  n_models=%d", task_id, len(tickers), len(models))
+
+    rows = []
+    total = len(tickers) * len(models)
+    done = 0
+
+    for ticker in tickers:
+        df = fetch_df(
+            """
+            SELECT date, close
+            FROM daily_prices
+            WHERE ticker = :ticker
+              AND date >= CURRENT_DATE - (:days || ' days')::interval
+              AND close IS NOT NULL
+            ORDER BY date ASC
+            """,
+            {"ticker": ticker, "days": period_days},
+        )
+        if df.empty:
+            for model_key in models:
+                rows.append({
+                    "ticker": ticker, "model": model_key, "error": "No price data",
+                    "rmse": None, "mae": None, "rmse_pct": None,
+                    "inference_latency_ms": None, "train_time_s": None, "memory_mb": None,
+                })
+                done += 1
+            continue
+
+        df["date"] = pd.to_datetime(df["date"])
+        df["close"] = df["close"].astype(float)
+        series = df.set_index("date")["close"].asfreq("B").ffill()
+
+        for model_key in models:
+            rows.append(run_one(ticker, model_key, series, horizon))
+            done += 1
+            self.update_state(state="PROGRESS", meta={"done": done, "total": total})
+
+    agg = summarize(rows, models, tickers)
+    result = {
+        "tickers": tickers, "models": models, "horizon": horizon, "period": period,
+        "rows": rows, **agg,
+    }
+    if stats:
+        result["stats"] = friedman_wilcoxon_holm(rows, models, tickers)
+
+    logger.info("[BATCH] task_id=%s  done=%d/%d", task_id, done, total)
+    _save_result(task_id, "run_batch_benchmark", input_data, result, "success")
+    _publish(task_id, "run_batch_benchmark", "success", result)
     return result

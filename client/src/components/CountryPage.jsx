@@ -6,6 +6,8 @@ import WeeklyReturnHistogram from "../components/WeeklyReturnHistogram";
 import PriceHistoryChart from "../components/PriceHistoryChart";
 import ForecastChart from "../components/ForecastChart";
 import ErrorBoundary from "../components/ErrorBoundary";
+import ClusterScatter from "../components/ClusterScatter";
+import CompanyNetwork from "../components/CompanyNetwork";
 import {
   BarChart,
   Bar,
@@ -76,6 +78,8 @@ const CountryPage = ({ country }) => {
 
   const [correlationLoading, setCorrelationLoading] = useState(false);
   const [correlationTickers, setCorrelationTickers] = useState([]);
+  const [orderedTickers, setOrderedTickers] = useState([]);
+  const [correlationOrder, setCorrelationOrder] = useState("default");
   const [correlationPairs, setCorrelationPairs] = useState([]);
   const [topCorrelatedPairs, setTopCorrelatedPairs] = useState([]);
 
@@ -123,8 +127,11 @@ const CountryPage = ({ country }) => {
       return;
     }
     setCorrelationLoading(true);
+    // order=clustered returns both `tickers` (alphabetical) and
+    // `orderedTickers` (hierarchical-clustering leaf order) in one
+    // response, so the toggle below needs no second request.
     axios
-      .get(`/analytics/correlation?country=${country}&period=1y`)
+      .get(`/analytics/correlation?country=${country}&period=1y&order=clustered`)
       .then((res) => {
         const pairs = res.data?.pairs ?? [];
         const tickerSet = new Set();
@@ -134,11 +141,13 @@ const CountryPage = ({ country }) => {
         });
         setCorrelationPairs(pairs);
         setCorrelationTickers(Array.from(tickerSet).sort());
+        setOrderedTickers(res.data?.orderedTickers ?? []);
         setTopCorrelatedPairs(res.data?.topCorrelated ?? []);
       })
       .catch(() => {
         setCorrelationPairs([]);
         setCorrelationTickers([]);
+        setOrderedTickers([]);
         setTopCorrelatedPairs([]);
       })
       .finally(() => setCorrelationLoading(false));
@@ -325,13 +334,31 @@ const CountryPage = ({ country }) => {
       )}
       {!correlationLoading && correlationTickers.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-2 text-gray-700">Sector Correlation</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold text-gray-700">Sector Correlation</h2>
+            <div className="flex gap-1">
+              {[["default", "Default order"], ["clustered", "Clustered order"]].map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setCorrelationOrder(key)}
+                  disabled={key === "clustered" && orderedTickers.length === 0}
+                  className={`px-2 py-1 text-xs rounded transition disabled:opacity-40 ${
+                    correlationOrder === key
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="border-collapse text-xs">
               <thead>
                 <tr>
                   <th className="p-1"></th>
-                  {correlationTickers.map((t) => (
+                  {(correlationOrder === "clustered" ? orderedTickers : correlationTickers).map((t) => (
                     <th
                       key={t}
                       className="p-1 font-normal text-gray-500 whitespace-nowrap"
@@ -343,12 +370,12 @@ const CountryPage = ({ country }) => {
                 </tr>
               </thead>
               <tbody>
-                {correlationTickers.map((rowTicker) => (
+                {(correlationOrder === "clustered" ? orderedTickers : correlationTickers).map((rowTicker) => (
                   <tr key={rowTicker}>
                     <th className="p-1 text-right font-normal text-gray-500 whitespace-nowrap">
                       {rowTicker}
                     </th>
-                    {correlationTickers.map((colTicker) => {
+                    {(correlationOrder === "clustered" ? orderedTickers : correlationTickers).map((colTicker) => {
                       const val =
                         rowTicker === colTicker ? 1 : correlationLookup[`${rowTicker}|${colTicker}`];
                       return (
@@ -375,6 +402,27 @@ const CountryPage = ({ country }) => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Cluster scatter — where this country's companies land in the
+          (volatility, mean weekly return) feature space K-means clusters on. */}
+      {companies.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-2 text-gray-700">Company Clusters</h2>
+          <ErrorBoundary label="Cluster scatter">
+            <ClusterScatter country={country} />
+          </ErrorBoundary>
+        </div>
+      )}
+
+      {/* MST network — correlation-distance minimum spanning tree. */}
+      {companies.length >= 3 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-2 text-gray-700">Company Network</h2>
+          <ErrorBoundary label="Company network">
+            <CompanyNetwork country={country} />
+          </ErrorBoundary>
         </div>
       )}
 

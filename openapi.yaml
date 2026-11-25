@@ -39,6 +39,10 @@ tags:
     description: Anomaly detection (IsolationForest + Z-score) on weekly returns across companies in a country
   - name: Clusters
     description: K-means clustering of all companies on return/volatility behavior
+  - name: Network
+    description: Minimum spanning tree over the correlation-distance matrix for a country's companies
+  - name: Validation
+    description: Rolling-origin cross-validation and multi-ticker/multi-model batch benchmarking (always async)
   - name: Internal
     description: Internal-only endpoints (no auth) — called by other services in this stack, not meant for external clients.
 
@@ -297,6 +301,9 @@ paths:
         - `lstm` — 2-layer PyTorch LSTM (hidden_size=64, dropout=0.2) over MinMax-normalized
           close prices, 60-day lookback window, 50 epochs. Needs ≥120 rows of history
           (vs. 60 for every other model). Slowest model in the stack — see caching below.
+        - `naive` — random-walk baseline: forecast = last observed close, repeated for every
+          step. Cheap, uncached, used as the reference point for every other model's
+          RMSE (see `/analytics/validation/rolling/{ticker}` and `/analytics/batch-benchmark`).
 
         `enriched=true` switches `ridge`/`random_forest`/`xgboost` from price-only lag
         features to lag features **+ fundamentals** (`beta`, `pe_ratio`, `log_market_cap`,
@@ -327,7 +334,7 @@ paths:
           schema:
             type: string
             default: arima
-            enum: [arima, ets, sarima, prophet, ridge, random_forest, xgboost, lstm]
+            enum: [arima, ets, sarima, prophet, ridge, random_forest, xgboost, lstm, naive]
             example: arima
         - name: days
           in: query
@@ -399,7 +406,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                detail: "Unknown model 'lightgbm'. Available: ['arima', 'ets', 'lstm', 'prophet', 'random_forest', 'ridge', 'sarima', 'xgboost']"
+                detail: "Unknown model 'lightgbm'. Available: ['arima', 'ets', 'lstm', 'naive', 'prophet', 'random_forest', 'ridge', 'sarima', 'xgboost']"
         "422":
           description: Not enough historical data (need ≥ 60 rows, ≥120 for lstm)
           content:
@@ -419,6 +426,12 @@ paths:
         Returns every valid pair plus the top 10 most correlated (`topCorrelated`) and
         top 10 most divergent/anti-correlated (`leastCorrelated`) pairs, sorted by
         correlation value.
+
+        `order=clustered` additionally runs average-linkage hierarchical clustering
+        over the correlation-distance matrix (`d = sqrt(2*(1-rho))`) and returns
+        `orderedTickers`: the same tickers in dendrogram leaf order, so a heatmap
+        drawn in that order groups correlated companies together instead of sorting
+        alphabetically. `tickers` (alphabetical) is always returned either way.
       parameters:
         - name: country
           in: query
@@ -436,6 +449,15 @@ paths:
             default: 1y
             enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
+        - name: order
+          in: query
+          required: false
+          description: default (alphabetical) or clustered (hierarchical-clustering leaf order)
+          schema:
+            type: string
+            default: default
+            enum: [default, clustered]
+            example: clustered
       responses:
         "200":
           description: Correlation matrix computed successfully
@@ -446,7 +468,9 @@ paths:
               example:
                 country: Japan
                 period: 1y
+                order: clustered
                 tickers: ["1605.T", "4502.T", "8306.T"]
+                orderedTickers: ["4502.T", "1605.T", "8306.T"]
                 pairCount: 231
                 pairs:
                   - ticker_a: 8801.T
@@ -583,6 +607,7 @@ paths:
                 companyCount: 270
                 companies:
                   - ticker: 0001.HK
+                    name: CK Hutchison Holdings
                     country: Hong Kong
                     sector: Industrials
                     cluster_id: 0
@@ -604,6 +629,244 @@ paths:
                 $ref: "#/components/schemas/Error"
         "422":
           description: Fewer companies with sufficient data than n_clusters requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/network:
+    get:
+      tags: [Network]
+      summary: Minimum spanning tree over a country's correlation-distance matrix
+      description: |
+        Builds the correlation-distance matrix (`d = sqrt(2*(1-rho))` on daily returns,
+        same definition `/analytics/correlation`'s clustered order uses) for every
+        company in a country, then returns the minimum spanning tree over it — the
+        sparsest graph that keeps every company connected to its closest peers, for a
+        node-link visualization (nodes colored by sector, edge thickness ~ closeness).
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: Country name
+          schema:
+            type: string
+            example: Japan
+        - name: period
+          in: query
+          required: false
+          description: History window — 3m | 6m | 1y | 2y | 5y
+          schema:
+            type: string
+            default: 1y
+            enum: [3m, 6m, 1y, 2y, 5y]
+            example: 1y
+      responses:
+        "200":
+          description: MST computed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkResponse"
+              example:
+                country: Japan
+                period: 1y
+                nodes:
+                  - ticker: 1605.T
+                    name: INPEX Corporation
+                    sector: Energy
+                edges:
+                  - source: 1605.T
+                    target: 5020.T
+                    distance: 0.9074
+                computation_time_ms: 450.2
+        "404":
+          description: No price data for the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Fewer than 2 tickers with data in the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/validation/rolling/{ticker}:
+    post:
+      tags: [Validation]
+      summary: Start a rolling-origin cross-validation run (always async)
+      description: |
+        Repeatedly moves the forecast origin forward (expanding or sliding window),
+        fitting each requested model fresh at every origin and scoring it against the
+        realized next `horizon` days. Mirrors `research/rolling_benchmark.py`'s
+        methodology, driving the production `MODEL_REGISTRY` classes.
+
+        Always asynchronous (never inline) — this is dozens of fit+predict calls per
+        model. Does not change `/analytics/models/forecast/{ticker}`'s contract at all.
+
+        Defaults to the cheap model set (arima/ets/sarima/prophet/ridge/naive);
+        random_forest/xgboost/lstm require `allow_heavy=true`. `naive` is always
+        included even if omitted from `models`, so every other model gets a
+        `rmse_vs_naive` baseline comparison per fold.
+
+        Poll `GET /tasks/status/{task_id}` for progress/result.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema: { type: string, example: 9988.HK }
+        - name: models
+          in: query
+          required: false
+          description: Repeatable. Defaults to arima,ets,sarima,prophet,ridge,naive.
+          schema:
+            type: array
+            items: { type: string }
+          example: [arima, naive]
+        - name: min_train
+          in: query
+          required: false
+          schema: { type: integer, default: 504 }
+        - name: origin_step
+          in: query
+          required: false
+          schema: { type: integer, default: 30 }
+        - name: horizon
+          in: query
+          required: false
+          schema: { type: integer, default: 30, minimum: 7, maximum: 90 }
+        - name: window
+          in: query
+          required: false
+          schema: { type: string, default: expanding, enum: [expanding, sliding] }
+        - name: period
+          in: query
+          required: false
+          schema: { type: string, default: 5y, enum: [6m, 1y, 2y, 5y] }
+        - name: allow_heavy
+          in: query
+          required: false
+          description: Required to include random_forest/xgboost/lstm.
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: Task queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskQueuedResponse"
+              example:
+                task_id: 170e525a-8565-4425-acc4-cff549ca8e39
+                status: queued
+                queue: longrunning_queue
+                ticker: 9988.HK
+                models: [arima, naive]
+        "400":
+          description: Unknown model, or a heavy model requested without allow_heavy=true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/batch-benchmark:
+    post:
+      tags: [Validation]
+      summary: Start a batch benchmark across many tickers x models (always async)
+      description: |
+        Runs every (ticker, model) pair through the same single-holdout protocol as
+        `/analytics/models/forecast/{ticker}` (`BaseForecastModel.run()`, 80/20
+        holdout). One Celery task for the whole batch, bounded by a per-task time
+        limit (soft 25min / hard 30min).
+
+        Select tickers explicitly, or by `country`/`sector` (resolved to tickers
+        server-side). `models` defaults to every registered model except `lstm`
+        (off by default — pass it explicitly to include it).
+
+        `stats=true` additionally runs a Friedman test across models plus pairwise
+        Wilcoxon signed-rank tests with Holm correction, on the tickers where every
+        model produced a result.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchBenchmarkRequest"
+            example:
+              country: Japan
+              models: [arima, naive, ets]
+              horizon: 30
+              period: 1y
+              stats: true
+      responses:
+        "200":
+          description: Task queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskQueuedResponse"
+        "400":
+          description: Unknown model, or neither tickers nor country/sector given
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No companies matched the given country/sector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/batch-benchmark/{task_id}/status:
+    get:
+      tags: [Validation]
+      summary: Progress-aware status for a batch benchmark task
+      description: >-
+        Distinct from the generic `/tasks/status/{task_id}` (which only reports
+        PENDING/STARTED/SUCCESS/FAILURE): while running, `progress` reports
+        `{done, total}` pairs completed, via Celery's own PROGRESS state.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Current status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id: { type: string }
+                  status: { type: string, example: PROGRESS }
+                  progress:
+                    type: object
+                    nullable: true
+                    properties:
+                      done: { type: integer }
+                      total: { type: integer }
+
+  /analytics/batch-benchmark/{task_id}/results:
+    get:
+      tags: [Validation]
+      summary: Final results for a batch benchmark task
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Status, and the full result once SUCCESS (null otherwise)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchBenchmarkResultEnvelope"
+        "500":
+          description: The task itself failed
           content:
             application/json:
               schema:
@@ -819,8 +1082,16 @@ components:
           example: 0.43
         memory_mb:
           type: number
-          description: Peak memory during fit+predict (max of tracemalloc peak and psutil RSS delta), in MB
+          description: >-
+            Python peak memory (tracemalloc) during fit+predict, in MB. Does not see native
+            C/C++ allocations (PyTorch, XGBoost, scikit-learn internals) -- see rss_mb for those.
           example: 0.85
+        rss_mb:
+          type: number
+          description: >-
+            Whole-process RSS delta during fit+predict, in MB. Coarser than memory_mb but
+            includes native allocations tracemalloc can't see.
+          example: 0.12
 
     ModelForecastResponse:
       type: object
@@ -876,8 +1147,18 @@ components:
         period:
           type: string
           example: 1y
+        order:
+          type: string
+          enum: [default, clustered]
+          example: default
         tickers:
           type: array
+          description: Alphabetical order, always present.
+          items: { type: string }
+        orderedTickers:
+          type: array
+          nullable: true
+          description: Hierarchical-clustering leaf order. Present only when order=clustered.
           items: { type: string }
         pairCount:
           type: integer
@@ -956,6 +1237,9 @@ components:
         ticker:
           type: string
           example: 0001.HK
+        name:
+          type: string
+          example: CK Hutchison Holdings
         country:
           type: string
           example: Hong Kong
@@ -1050,3 +1334,116 @@ components:
           type: string
           nullable: true
           description: Present only if the underlying yfinance fetch failed — all other fields are null in that case.
+
+    NetworkNode:
+      type: object
+      properties:
+        ticker: { type: string, example: 1605.T }
+        name: { type: string, example: INPEX Corporation }
+        sector: { type: string, example: Energy }
+
+    NetworkEdge:
+      type: object
+      properties:
+        source: { type: string, example: 1605.T }
+        target: { type: string, example: 5020.T }
+        distance:
+          type: number
+          description: Correlation distance, d = sqrt(2*(1-rho))
+          example: 0.9074
+
+    NetworkResponse:
+      type: object
+      properties:
+        country: { type: string, example: Japan }
+        period: { type: string, example: 1y }
+        nodes:
+          type: array
+          items: { $ref: "#/components/schemas/NetworkNode" }
+        edges:
+          type: array
+          description: n-1 edges forming the minimum spanning tree.
+          items: { $ref: "#/components/schemas/NetworkEdge" }
+        computation_time_ms: { type: number, example: 450.2 }
+
+    TaskQueuedResponse:
+      type: object
+      description: Common shape returned by every endpoint that enqueues a Celery task instead of running inline.
+      properties:
+        task_id: { type: string, example: 170e525a-8565-4425-acc4-cff549ca8e39 }
+        status: { type: string, example: queued }
+        queue: { type: string, example: longrunning_queue }
+
+    BatchBenchmarkRequest:
+      type: object
+      description: Provide `tickers`, or `country`/`sector` to resolve them server-side.
+      properties:
+        tickers:
+          type: array
+          nullable: true
+          items: { type: string }
+        country: { type: string, nullable: true, example: Japan }
+        sector: { type: string, nullable: true, example: Financials }
+        models:
+          type: array
+          nullable: true
+          description: Defaults to every registered model except lstm.
+          items: { type: string }
+          example: [arima, naive, ets]
+        horizon: { type: integer, default: 30, example: 30 }
+        period: { type: string, default: 1y, enum: [6m, 1y, 2y, 5y] }
+        stats: { type: boolean, default: false, description: Run Friedman + Wilcoxon-Holm on the results. }
+
+    BatchBenchmarkRow:
+      type: object
+      properties:
+        ticker: { type: string, example: 9988.HK }
+        model: { type: string, example: arima }
+        error: { type: string, nullable: true }
+        rmse: { type: number, nullable: true }
+        mae: { type: number, nullable: true }
+        rmse_pct: { type: number, nullable: true }
+        inference_latency_ms: { type: number, nullable: true }
+        train_time_s: { type: number, nullable: true }
+        memory_mb: { type: number, nullable: true }
+
+    BatchBenchmarkResult:
+      type: object
+      properties:
+        tickers:
+          type: array
+          items: { type: string }
+        models:
+          type: array
+          items: { type: string }
+        horizon: { type: integer }
+        period: { type: string }
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/BatchBenchmarkRow" }
+        model_summary:
+          type: object
+          description: Keyed by model — {n_tickers, mean_rmse_pct, std_rmse_pct, best_model_count}.
+        rank_table:
+          type: object
+          description: Keyed by ticker, then model — RMSE rank (1 = best) among models that produced a result.
+        zero_error_tickers:
+          type: array
+          description: Tickers where every model scored ~0 RMSE — flagged, never silently dropped.
+          items: { type: string }
+        stats:
+          type: object
+          nullable: true
+          description: >-
+            Present only when the request set stats=true. Either
+            {complete_tickers, friedman: {statistic, p_value}, pairwise_wilcoxon_holm}
+            or {note} if too few tickers/models qualified.
+
+    BatchBenchmarkResultEnvelope:
+      type: object
+      properties:
+        task_id: { type: string }
+        status: { type: string, example: SUCCESS }
+        result:
+          nullable: true
+          $ref: "#/components/schemas/BatchBenchmarkResult"

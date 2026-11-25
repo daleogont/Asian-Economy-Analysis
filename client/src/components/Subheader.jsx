@@ -142,7 +142,7 @@ const Subheader = () => {
           )}
         </li>
 
-        <li className="hover:underline cursor-pointer">
+        <li className="hover:underline cursor-pointer pb-2">
           <Link to="/research" className="hover:text-blue-400">
             Research
           </Link>

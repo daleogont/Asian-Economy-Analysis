@@ -14,6 +14,7 @@ celery_app.conf.task_routes = {
     "app.tasks.send_email_notification": {"queue": "email_queue"},
     "app.tasks.run_market_analysis":     {"queue": "longrunning_queue"},
     "app.tasks.run_rolling_validation":  {"queue": "longrunning_queue"},
+    "app.tasks.run_batch_benchmark":     {"queue": "longrunning_queue"},
 }
 
 celery_app.conf.update(

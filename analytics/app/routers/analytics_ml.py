@@ -6,6 +6,9 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Query
+from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.sparse.csgraph import minimum_spanning_tree
+from scipy.spatial.distance import squareform
 from sklearn.cluster import KMeans
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
@@ -43,15 +46,35 @@ def correlation_distance_matrix(returns: pd.DataFrame):
     return tickers, dist
 
 
+def hierarchical_leaf_order(tickers: list, dist: np.ndarray) -> list:
+    """Average-linkage hierarchical clustering over a correlation-distance
+    matrix, returning tickers in dendrogram leaf order (correlated
+    companies placed next to each other) instead of alphabetical order."""
+    if len(tickers) < 3:
+        return list(tickers)
+    condensed = squareform(dist, checks=False)
+    z = linkage(condensed, method="average")
+    leaves = dendrogram(z, no_plot=True)["leaves"]
+    return [tickers[i] for i in leaves]
+
+
 @router.get("/correlation")
 def correlation(
     country: str = Query(...),
     period:  str = Query("1y"),
+    order:   str = Query("default", pattern="^(default|clustered)$"),
 ):
     """
     Pairwise Pearson correlation of daily returns across every company in a
     country. Correlation is computed on returns (not raw price levels) to
     avoid spurious trend-driven correlation between unrelated stocks.
+
+    `order=clustered` additionally returns `orderedTickers`: the same
+    tickers re-ordered by average-linkage hierarchical clustering over the
+    correlation-distance matrix (d = sqrt(2*(1-rho))), so a heatmap drawn
+    in that order groups correlated companies together instead of sorting
+    alphabetically. `tickers` (default/alphabetical) is always present and
+    unchanged either way.
     """
     days = _period_to_days(period)
 
@@ -94,12 +117,19 @@ def correlation(
     top_correlated   = sorted(pairs, key=lambda p: p["correlation"], reverse=True)[:10]
     least_correlated = sorted(pairs, key=lambda p: p["correlation"])[:10]
 
+    ordered_tickers = None
+    if order == "clustered":
+        _, dist = correlation_distance_matrix(returns[tickers])
+        ordered_tickers = hierarchical_leaf_order(tickers, dist)
+
     computation_time_ms = round((time.perf_counter() - start) * 1000, 3)
 
     return {
         "country":            country,
         "period":             period,
+        "order":              order,
         "tickers":            tickers,
+        "orderedTickers":     ordered_tickers,
         "pairCount":          len(pairs),
         "pairs":              pairs,
         "topCorrelated":      top_correlated,
@@ -217,7 +247,7 @@ def clusters(
 
     df = fetch_df(
         """
-        SELECT dp.ticker, dp.date, dp.close, c.country, c.sector
+        SELECT dp.ticker, dp.date, dp.close, c.name, c.country, c.sector
         FROM daily_prices dp
         JOIN companies c ON dp.ticker = c.ticker
         WHERE dp.date >= CURRENT_DATE - (:days || ' days')::interval
@@ -232,7 +262,7 @@ def clusters(
 
     start = time.perf_counter()
 
-    meta = df.drop_duplicates("ticker").set_index("ticker")[["country", "sector"]]
+    meta = df.drop_duplicates("ticker").set_index("ticker")[["name", "country", "sector"]]
     wide = _wide_prices(df)
     weekly_returns = wide.resample("W-FRI").last().pct_change()
 
@@ -263,6 +293,7 @@ def clusters(
     for i, ticker in enumerate(tickers):
         companies.append({
             "ticker":             ticker,
+            "name":               meta.loc[ticker, "name"],
             "country":            meta.loc[ticker, "country"],
             "sector":             meta.loc[ticker, "sector"],
             "cluster_id":         int(labels[i]),
@@ -297,4 +328,88 @@ def clusters(
         "companies":            companies,
         "cluster_summary":      cluster_summary,
         "computation_time_ms":  computation_time_ms,
+    }
+
+
+# A zero-distance edge (rho == 1 for two distinct tickers) must still be
+# treated as an edge, not as scipy's dense-matrix convention for "no
+# edge." 1e-6 is safely above the float-precision floor where scipy's
+# sparse conversion starts silently dropping values (confirmed empirically
+# in analytics/scripts/validate_distance_methods.py's test suite — 1e-9
+# was dropped, 1e-6 is not) and negligible next to real distances, which
+# range roughly 0-2.
+_MST_ZERO_EPSILON = 1e-6
+
+
+@router.get("/network")
+def network(
+    country: str = Query(...),
+    period:  str = Query("1y"),
+):
+    """
+    Minimum spanning tree over the correlation-distance matrix
+    (d = sqrt(2*(1-rho)) on daily returns) for every company in a country —
+    the sparsest graph that keeps every company connected to its closest
+    peers, for a node-link visualization.
+    """
+    days = _period_to_days(period)
+
+    df = fetch_df(
+        """
+        SELECT dp.ticker, dp.date, dp.close, c.name, c.sector
+        FROM daily_prices dp
+        JOIN companies c ON dp.ticker = c.ticker
+        WHERE c.country = :country
+          AND dp.date >= CURRENT_DATE - (:days || ' days')::interval
+          AND dp.close IS NOT NULL
+        ORDER BY dp.date ASC
+        """,
+        {"country": country, "days": days},
+    )
+
+    if df.empty:
+        raise HTTPException(status_code=404, detail=f"No price data for country '{country}'")
+
+    start = time.perf_counter()
+
+    meta = df.drop_duplicates("ticker").set_index("ticker")[["name", "sector"]]
+    wide = _wide_prices(df)
+    returns = wide.pct_change().dropna(how="all")
+
+    tickers, dist = correlation_distance_matrix(returns)
+    if len(tickers) < 2:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Need at least 2 tickers with data in '{country}', found {len(tickers)}",
+        )
+
+    safe = dist.copy()
+    n = safe.shape[0]
+    off_diag_zero = (safe == 0) & ~np.eye(n, dtype=bool)
+    safe[off_diag_zero] = _MST_ZERO_EPSILON
+
+    mst = minimum_spanning_tree(safe).toarray()
+    edge_indices = np.argwhere(mst > 0)
+
+    nodes = [
+        {"ticker": t, "name": meta.loc[t, "name"], "sector": meta.loc[t, "sector"]}
+        for t in tickers
+    ]
+    edges = [
+        {
+            "source":   tickers[i],
+            "target":   tickers[j],
+            "distance": round(float(dist[i, j]), 4),
+        }
+        for i, j in edge_indices
+    ]
+
+    computation_time_ms = round((time.perf_counter() - start) * 1000, 3)
+
+    return {
+        "country":            country,
+        "period":             period,
+        "nodes":              nodes,
+        "edges":              edges,
+        "computation_time_ms": computation_time_ms,
     }

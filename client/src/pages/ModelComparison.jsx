@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import ParetoChart from "../components/ParetoChart";
 
 const MODELS = [
   { key: "arima",         label: "ARIMA" },
@@ -19,7 +20,17 @@ const COLUMNS = [
   { key: "mae",                   label: "MAE" },
   { key: "inference_latency_ms",  label: "Latency (ms)" },
   { key: "train_time_s",          label: "Train Time (s)" },
-  { key: "memory_mb",             label: "Memory (MB)" },
+  {
+    key: "memory_mb",
+    label: "Python peak memory (tracemalloc)",
+    tooltip: "Peak Python-level allocation during fit+predict, via tracemalloc. Does not count native "
+      + "C/C++ allocations (PyTorch, XGBoost, scikit-learn internals) -- see Process RSS for those.",
+  },
+  {
+    key: "rss_mb",
+    label: "Process RSS (MB)",
+    tooltip: "Whole-process memory delta during fit+predict (includes native allocations tracemalloc can't see). Coarser, but complete.",
+  },
   { key: "cache",                 label: "Cache" },
 ];
 
@@ -181,6 +192,7 @@ const ModelComparison = () => {
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
+                    title={col.tooltip}
                     className="px-4 py-2 text-left cursor-pointer select-none hover:bg-gray-200 transition whitespace-nowrap"
                   >
                     {col.label}
@@ -203,17 +215,17 @@ const ModelComparison = () => {
                   >
                     <td className="px-4 py-2 font-medium">{row.label}</td>
                     {row.status === "loading" && (
-                      <td colSpan={5} className="px-4 py-2 text-gray-400 text-xs">
+                      <td colSpan={6} className="px-4 py-2 text-gray-400 text-xs">
                         Running…
                       </td>
                     )}
                     {row.status === "error" && (
-                      <td colSpan={5} className="px-4 py-2 text-red-500 text-xs">
+                      <td colSpan={6} className="px-4 py-2 text-red-500 text-xs">
                         {row.error}
                       </td>
                     )}
                     {row.status === "idle" && (
-                      <td colSpan={5} className="px-4 py-2 text-gray-300 text-xs">
+                      <td colSpan={6} className="px-4 py-2 text-gray-300 text-xs">
                         —
                       </td>
                     )}
@@ -224,6 +236,7 @@ const ModelComparison = () => {
                         <td className="px-4 py-2">{fmt(row.metrics.inference_latency_ms, 1)}</td>
                         <td className="px-4 py-2">{fmt(row.metrics.train_time_s)}</td>
                         <td className="px-4 py-2">{fmt(row.metrics.memory_mb, 2)}</td>
+                        <td className="px-4 py-2">{fmt(row.metrics.rss_mb, 2)}</td>
                       </>
                     )}
                     {row.status === "done" && (
@@ -265,6 +278,20 @@ const ModelComparison = () => {
             Lowest memory: <strong>{summary.lowestMemory.label}</strong> (
             {fmt(summary.lowestMemory.metrics.memory_mb, 2)}MB)
           </div>
+        </div>
+      )}
+
+      {readyRows.length >= 2 && (
+        <div className="mt-8">
+          <ParetoChart
+            points={readyRows.map((r) => ({
+              model: r.model,
+              label: r.label,
+              train_time_s: r.metrics.train_time_s,
+              rmse: r.metrics.rmse,
+              memory_mb: r.metrics.memory_mb,
+            }))}
+          />
         </div>
       )}
     </div>

@@ -71,7 +71,11 @@ class BaseForecastModel:
         _, traced_peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         rss_delta = max(_process.memory_info().rss - rss_before, 0)
-        memory_mb = max(traced_peak, rss_delta) / (1024 * 1024)
+        # memory_mb used to report max(traced_peak, rss_delta) -- a blend that made
+        # it, in practice, sometimes the RSS number rather than the tracemalloc one
+        # it was named for. Split cleanly now that both are reported: memory_mb is
+        # exactly the tracemalloc peak, rss_mb is exactly the RSS delta.
+        memory_mb = traced_peak / (1024 * 1024)
 
         return {
             "model_name": self.name,
@@ -79,7 +83,13 @@ class BaseForecastModel:
             "metrics": {
                 "inference_latency_ms": round(inference_latency_ms, 3),
                 "train_time_s": round(train_time_s, 4),
+                # memory_mb is tracemalloc's peak Python allocation — it does not
+                # see native C/C++ allocations (PyTorch, XGBoost, scikit-learn
+                # internals). rss_mb is the process-wide RSS delta instead: a
+                # coarser but more complete number, offered alongside rather than
+                # in place of memory_mb since the two measure different things.
                 "memory_mb": round(memory_mb, 3),
+                "rss_mb": round(rss_delta / (1024 * 1024), 3),
                 "model_name": self.name,
                 "rmse": round(rmse, 4) if rmse is not None else None,
                 "mae": round(mae, 4) if mae is not None else None,

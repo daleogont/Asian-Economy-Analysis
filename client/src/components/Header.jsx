@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, ChevronRight, ChevronDown, Home, BookOpen, BarChart2 } from "lucide-react";
+import { Menu, ChevronRight, ChevronDown, Home, BookOpen, BarChart2, GitCompare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -138,6 +138,15 @@ const Header = () => {
             >
               <BarChart2 className="w-5 h-5" />
               <span>Model Comparison</span>
+            </Link>
+
+            <Link
+              to="/batch-benchmark"
+              className="flex items-center space-x-2 hover:bg-gray-100 px-2 py-2 rounded"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <GitCompare className="w-5 h-5" />
+              <span>Batch Benchmark</span>
             </Link>
 
           </nav>

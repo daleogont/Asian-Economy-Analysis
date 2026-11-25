@@ -14,7 +14,7 @@ from sqlalchemy import text
 
 from app.db import engine, fetch_df
 from app.models.lstm import LstmModel
-from app.routers import analytics_ml, forecast, internal, models, rolling, summary, validation
+from app.routers import analytics_ml, batch_benchmark, forecast, internal, models, rolling, summary, validation
 from app.routers import tasks as tasks_router
 
 logging.basicConfig(level=logging.INFO)
@@ -157,6 +157,7 @@ app.include_router(forecast.router,      prefix="/analytics", tags=["Analytics"]
 app.include_router(models.router,        prefix="/analytics", tags=["Analytics"])
 app.include_router(analytics_ml.router,  prefix="/analytics", tags=["Analytics"])
 app.include_router(validation.router,    prefix="/analytics", tags=["Analytics"])
+app.include_router(batch_benchmark.router, prefix="/analytics", tags=["Analytics"])
 app.include_router(internal.router,      prefix="/internal",  tags=["Internal"])
 app.include_router(tasks_router.router,  prefix="/tasks",     tags=["Tasks"])
 

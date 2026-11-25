@@ -1197,6 +1197,67 @@
                 "description": "K-means clustering of all companies on mean_weekly_return + volatility (StandardScaler-normalized)."
               },
               "response": []
+            },
+            {
+              "name": "Correlation — Japan (clustered order)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/correlation?country=Japan&period=1y&order=clustered",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "correlation"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    },
+                    {
+                      "key": "order",
+                      "value": "clustered",
+                      "description": "default | clustered (hierarchical-clustering leaf order)"
+                    }
+                  ]
+                },
+                "description": "Same correlation matrix, plus orderedTickers: tickers re-ordered by average-linkage hierarchical clustering over d = sqrt(2*(1-rho)), so a heatmap drawn in that order groups correlated companies together."
+              },
+              "response": []
+            },
+            {
+              "name": "Network (MST) — Japan",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/network?country=Japan&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "network"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    }
+                  ]
+                },
+                "description": "Minimum spanning tree over the correlation-distance matrix (d = sqrt(2*(1-rho))) for every company in a country. nodes (ticker/name/sector) + edges (source/target/distance)."
+              },
+              "response": []
             }
           ]
         },
@@ -1438,6 +1499,191 @@
                   ]
                 },
                 "description": "Internal-only (no auth) — flushes all forecast:* Redis keys. Called by server/utils/deltaFetch.js after a real delta fetch."
+              },
+              "response": []
+            },
+            {
+              "name": "Forecast — 9988.HK (Naive / random walk)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/models/forecast/9988.HK?model=naive&days=30&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "models",
+                    "forecast",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "model",
+                      "value": "naive"
+                    },
+                    {
+                      "key": "days",
+                      "value": "30"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    }
+                  ]
+                },
+                "description": "Random-walk baseline: forecast = last observed close, repeated. Not cached. Used as the reference point for RMSE_model / RMSE_naive comparisons."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Stage 3 — Validation & Batch Benchmark",
+          "item": [
+            {
+              "name": "Rolling-origin validation — 9988.HK (arima, small pilot)",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{python_url}}/analytics/validation/rolling/9988.HK?models=arima&min_train=120&origin_step=60&horizon=10&period=1y",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "validation",
+                    "rolling",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "models",
+                      "value": "arima"
+                    },
+                    {
+                      "key": "min_train",
+                      "value": "120"
+                    },
+                    {
+                      "key": "origin_step",
+                      "value": "60"
+                    },
+                    {
+                      "key": "horizon",
+                      "value": "10"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    }
+                  ]
+                },
+                "description": "Always async. `naive` is auto-included as the baseline even though not listed here. Returns task_id — poll GET /tasks/status/{{task_id}} for progress/result. Full-size default params (min_train=504, origin_step=30, horizon=30, period=5y) take much longer; this example is a fast pilot."
+              },
+              "response": []
+            },
+            {
+              "name": "Rolling-origin validation — 9988.HK (heavy model, explicit opt-in)",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{python_url}}/analytics/validation/rolling/9988.HK?models=xgboost&allow_heavy=true",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "validation",
+                    "rolling",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "models",
+                      "value": "xgboost"
+                    },
+                    {
+                      "key": "allow_heavy",
+                      "value": "true",
+                      "description": "Required for random_forest/xgboost/lstm — omit this and the request is rejected with 400."
+                    }
+                  ]
+                },
+                "description": "random_forest/xgboost/lstm are rejected with 400 unless allow_heavy=true, since each origin re-fits from scratch."
+              },
+              "response": []
+            },
+            {
+              "name": "Batch benchmark — start (Japan, cheap models + stats)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{python_url}}/analytics/batch-benchmark",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "batch-benchmark"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"country\": \"Japan\",\n  \"models\": [\"arima\", \"naive\", \"ets\"],\n  \"horizon\": 30,\n  \"period\": \"1y\",\n  \"stats\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Provide `tickers`, or `country`/`sector` to resolve them server-side. `models` defaults to every registered model except lstm (off by default). Returns task_id — copy it into {{task_id}} to use with the status/results endpoints below. stats=true also runs Friedman + pairwise Wilcoxon-Holm on tickers where every model scored."
+              },
+              "response": []
+            },
+            {
+              "name": "Batch benchmark — status",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/batch-benchmark/{{task_id}}/status",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "batch-benchmark",
+                    "{{task_id}}",
+                    "status"
+                  ]
+                },
+                "description": "Progress-aware status ({done, total} pairs completed via Celery's PROGRESS state) -- distinct from the generic GET /tasks/status/{{task_id}}, which has no progress detail."
+              },
+              "response": []
+            },
+            {
+              "name": "Batch benchmark — results",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/batch-benchmark/{{task_id}}/results",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "batch-benchmark",
+                    "{{task_id}}",
+                    "results"
+                  ]
+                },
+                "description": "Full result (rows, model_summary, rank_table, zero_error_tickers, stats) once status is SUCCESS; result is null while still running."
               },
               "response": []
             }

@@ -1,0 +1,586 @@
+# Research benchmark — rolling-origin cross-validation for the paper
+
+This directory is **read-only against production**: it imports the production
+model classes (`analytics/app/models/{arima,ets,sarima,prophet}.py`) directly
+by adding `analytics/` to `sys.path`, but never imports from or writes to
+`client/`, `server/`, `nginx`, `openapi.yaml`, Postman, tests, or
+`MODEL_REGISTRY`. No DB schema changes, no DB writes — only `SELECT`s against
+`daily_prices`/`companies`. All code and output lives under `research/`.
+
+It runs **outside Docker**, in a dedicated venv at `research/.venv`
+(`python3 -m venv`), connecting to Postgres over the host-mapped
+`localhost:5432` (see `docker-compose.yml`'s `ports: ["5432:5432"]` on the
+`postgres` service). This was a deliberate choice over running inside the
+`python-api` container: that image has no bind mount for `analytics/`
+(`COPY app/ ./app/` is baked at build time) and the hard constraint was not
+to add research dependencies (not needed here, since we match
+`analytics/requirements.txt`'s pinned versions in the venv instead) to the
+production image. `research/.venv` pins the same versions production uses
+(`pandas==2.2.2`, `numpy==1.26.4`, `statsmodels==0.14.4`, `prophet==1.1.5`,
+`psutil==6.0.0`) plus `scipy` (Diebold-Mariano) and `sqlalchemy`/
+`psycopg2-binary` for the DB connection. Interpreter: Python 3.10.1 (see
+`research/.venv/pyvenv.cfg`). Exact pinned versions (including transitive
+deps) are captured in `research/requirements.txt`, generated via
+`research/.venv/bin/pip freeze`.
+
+**Prophet note:** the prophet 1.1.5 wheel ships the same broken
+`cmdstan-2.33.1` stub documented in `analytics/Dockerfile` (and
+`PROJECT_STATE.md`'s Stage 2 notes) — fixed identically but *only inside
+`research/.venv`* (`rm -rf research/.venv/lib/python3.10/site-packages/prophet/stan_model/cmdstan-2.33.1`),
+never touching `analytics/Dockerfile`.
+
+## Ticker sample
+
+Same 30 tickers as the existing one-year paper benchmark
+(`analytics/scripts/benchmark_paper.py`), read back from its committed
+output `benchmark_results.csv` rather than re-running `select_tickers()`
+live — re-running it against the *current* DB returns **zero** tickers at
+the original 365-day/240-row threshold, because `daily_prices` was ~2
+months stale relative to wall-clock "today" at the time this benchmark was
+built (see Data staleness below), and the 365-day window no longer covers
+240 trading days. Using the fixed list (`research/common.py::PAPER_TICKERS`)
+keeps the sample identical to, and thus comparable with, the existing
+one-year results.
+
+12 countries are represented (2-3 tickers each): China, Hong Kong, India,
+Indonesia, Japan, Malaysia, Pakistan, Saudi Arabia, Singapore, Taiwan,
+Thailand, Vietnam. **No South Korea or UAE tickers** — they weren't part of
+the original 30-ticker sample (confirmed against `companies` on
+2026-10-16), so none were added here either, per the brief's instruction to
+only include them if the selection rule put them in the original sample.
+
+All 30 tickers have 4.3-5.0 years of history in `daily_prices` (none below
+the ~3-year flag threshold), so none were dropped.
+
+## Where accuracy vs. cost numbers come from
+
+**Accuracy** (`rmse`, `mae`, `rmse_pct`, `mase` in `rolling_folds.csv`/
+`forecast_paths.csv`) comes from the **host venv** run
+(`research/rolling_benchmark.py`, macOS, `research/.venv`).
+
+**Cost** (`train_time_s`, `inference_latency_ms`, `memory_mb`) should be
+read from the **container-based clean timing pass**
+(`research/timing_pass.py`, run inside `python-api`, Linux/CPU-only — the
+environment the paper's cost claims are actually about), via
+`research/results/timing_clean.csv` / `timing_clean_summary.csv`. The main
+run's own cost columns in `rolling_folds.csv` were recorded under host CPU
+contention (loadavg 3.3-4.5 for most of the run) and are **not** a clean
+cost measurement — treat them as discarded/contaminated, present only
+because they were emitted alongside the (valid) accuracy numbers by the
+same `run_fold()` call.
+
+### Clean timing pass — results (2026-10-21)
+
+Run via `docker cp` (no bind mount — `docker-compose.override.yml.disabled`
+documents why a mount wasn't used, blocked by macOS folder permissions),
+strictly as specified: 30 tickers × 3 fixed origins (first/middle/last) ×
+10 model variants × 3 repetitions, sequential, first fit per model per
+process discarded as warm-up, loadavg-gated at 1.5 (paused and resumed
+automatically multiple times — see `timing_pass_run.log`). Host was quieted
+first: `node-api`, `client`, `celery-worker`, `flower`, `redis` were
+stopped (`docker compose stop`, not `down`) since `timing_pass.py` needs
+only `postgres` (DB) and `python-api` (where it runs) — confirmed none of
+`research/`'s code imports redis/celery. `RUN COMPLETE` after 10,280s
+(2h51m); 2,690 data rows (2,700 − 10 warm-up discards), **0 errors**.
+Services were restarted with `docker compose start` afterward and `/health`
+reconfirmed ok both before stopping and after restarting them.
+
+Container CPU/memory limits and host specs: see `host_info.json`'s
+`container_execution_context` block (no `NanoCpus`/`Memory` limit set in
+`docker-compose.yml` — the container shares the full Docker Desktop VM
+allocation: 8 vCPU / 7.67GB at collection time) alongside the host's own
+specs (4-core/8-thread i5-1038NG7, 16GB RAM).
+
+Median `train_time_s` / `inference_latency_ms`, clean container vs. the
+(contaminated) host numbers already in `rolling_folds.csv`:
+
+| model | host (contaminated) train_s | container (clean) train_s | host inf_ms | container inf_ms |
+|---|---:|---:|---:|---:|
+| arima | 0.241 | 0.561 | 121.1 | 309.6 |
+| ets | 0.345 | 0.764 | 163.1 | 636.8 |
+| sarima | 0.445 | 0.843 | 120.8 | 303.9 |
+| prophet | 0.477 | 0.462 | 102.4 | 128.3 |
+| arima_optimized | 5.286 | 13.503 | 122.1 | 339.9 |
+| ets_optimized | 1.772 | 4.074 | 126.7 | 311.8 |
+| prophet_optimized | 5.238 | 4.842 | 99.7 | 130.0 |
+| random_walk(_drift) | ~0.0005 | ~0.0005 | ~2.4 | ~5.7 |
+
+**Counter-intuitive finding, worth flagging rather than hiding:** the clean
+container numbers are *higher* than the contaminated host numbers for
+every statsmodels-based model (arima/ets/sarima and their optimized
+variants) — both train time (2-3x) and inference latency (2.5-5x) — despite
+the host run having been under real CPU contention (loadavg 3.3-4.5) and
+the container run being quiet (loadavg gated ≤1.5). Only the two Prophet
+variants and the two baselines are comparable or lower in the container.
+This means CPU contention is **not** the dominant driver of the host
+numbers being "wrong" — a platform difference (macOS Accelerate/vecLib
+BLAS vs. whatever BLAS the `python:3.11-slim` Debian container resolves
+for numpy/statsmodels' linear algebra, or the VM's own per-core throughput
+under Docker Desktop's virtualization) is the more likely explanation,
+since `memory_mb` (which isn't BLAS-sensitive) stays close between the two
+environments for every model. The practical takeaway for the paper:
+**use the clean container numbers as the authoritative absolute cost
+figures** (that is the production environment), but note that the
+host-contaminated numbers in `rolling_folds.csv` *understate* true
+production latency for the statsmodels-based models rather than merely
+being noisy — the direction of the bias is the opposite of what
+"contaminated" usually implies.
+
+### Library version parity, host vs. container
+
+Checked directly before running the container-based timing pass. Matching
+exactly in both: `statsmodels` 0.14.4, `prophet` 1.1.5, `cmdstanpy` 1.3.0,
+`numpy` 1.26.4, `pandas` 2.2.2. Differing: `scipy` (1.15.3 host vs 1.17.1
+container — not a direct choice, it's a consequence of Python 3.10.1 (host
+venv) vs 3.11 (container's base image); `scipy` isn't pinned in
+`analytics/requirements.txt`, so each environment's pip resolved whatever
+build matches its own interpreter) and `scikit-learn` (not installed on
+the host venv at all — research code doesn't use it).
+
+Fit all 4 Tier-A models (`research/compare_envs.py`) on the identical
+ticker+origin slice (`0388.HK`, origin `2025-10-07`, 1044 training rows)
+in both environments and diffed the 30-step forecasts:
+
+| model   | max abs diff | relative (of ~448 price level) |
+|---------|-------------:|---------------------------------|
+| arima   | 0.0000       | bit-identical                   |
+| sarima  | 0.0000       | bit-identical                   |
+| ets     | 0.2559       | ~0.057%                         |
+| prophet | 0.5362       | ~0.11%                          |
+
+`arima`/`sarima` are bit-identical across environments. `ets` and
+`prophet` differ by small amounts. `ets`'s difference is consistent with
+the scipy-version gap (statsmodels' `ExponentialSmoothing.fit()` uses
+`scipy.optimize` internally). `prophet`'s difference can**not** come from
+scipy (Prophet's core fit runs through the bundled cmdstan binary, not
+scipy) — the most likely explanation is a libm/floating-point difference
+between macOS and Linux affecting the compiled Stan binary's internal
+transcendental-function evaluations over many optimizer iterations; both
+environments are independently deterministic run-to-run (verified by
+repeat-fitting identical data 12x on the host with bit-identical results
+every time), so this isn't optimizer-seed randomness. Neither gap is large
+enough to change which model wins a comparison, but it means a reader
+should not expect the host venv's Prophet numbers to reproduce bit-for-bit
+inside the container (or vice versa) — only the production-config tiers
+(A/D) were checked this way; Tier C (`*_optimized`) was not, since its
+hyperparameter search makes a direct per-step forecast diff less
+meaningful than for the fixed-config tiers.
+
+## Prophet cmdstan optimizer fallback — investigated, does not affect results
+
+**Occurs only at `changepoint_prior_scale=0.001`** (the smallest point in
+`OptimizedProphetModel`'s tuning grid, Tier C only) and does **not** affect
+production Prophet (Tier A) or the yearly-off ablation (Tier D) — see the
+full investigation below.
+
+While the rolling benchmark was running, its log showed repeated cmdstanpy
+warnings: `Chain [1] error: code '1' Operation not permitted` followed by
+`Optimization terminated abnormally. Falling back to Newton.` — exactly 2
+per origin, every origin. This was investigated in full before continuing,
+since it could have meant the research environment's Prophet silently
+differs from production's.
+
+**Where research runs:** host machine (macOS), user `gontardaniil` (regular
+admin account, uid 501), `research/.venv/bin/python research/rolling_benchmark.py`
+— confirmed via `ps aux`. Not inside any container, not running as root,
+not under any sandbox profile visible to `ps`/`ulimit` (`ulimit -a` showed
+no restrictive limits: 1,048,576 file descriptors, 2784 processes, both far
+from exhausted during the run).
+
+**Root cause — NOT a permissions/sandbox/mount issue.** The message text is
+misleading: it is cmdstan's own optimizer reporting an internal convergence
+failure, not an OS-level permission denial. Reproduced deterministically in
+an isolated one-off process (unrelated to the long-running job, ruling out
+process-age/resource-exhaustion theories): fitting `OptimizedProphetModel`
+(the Tier C research-only tuning class) on real data, the L-BFGS fit fails
+with this exact message **only** at `changepoint_prior_scale=0.001` — the
+smallest value in that class's tuning grid (`research/models_extra.py`'s
+`GRID_CPS = [0.001, 0.01, 0.1, 0.5]`) — for both `yearly_seasonality`
+settings, and succeeds cleanly at 0.01/0.1/0.5 every time. CmdStan's
+L-BFGS line search degenerates at this strongly-regularized extreme
+(near-zero changepoint flexibility), and cmdstanpy's own documented
+recovery path (retry with `algorithm=newton`) kicks in and returns a valid
+fit — not corrupted output, just a different (also standard) optimizer.
+This is 100% reproducible given the same data + that hyperparameter, not an
+intermittent host flake.
+
+**Does production ever hit this?** No. Checked directly: 3 live calls to
+the running `python-api` container's `/analytics/models/forecast/9988.HK?model=prophet&period=5y`
+produced zero cmdstan warnings in `docker compose logs python-api`, and
+returned bit-identical forecasts across repeated calls. Production's
+`ProphetModel` never sets `changepoint_prior_scale` (uses Prophet's own
+default, ~0.05), so it can never land on the one value that triggers this.
+
+**Was the original one-year `benchmark_paper.py` run affected?** No, on two
+independent grounds: it ran inside the `python-api` Linux container (per
+its own docstring), and it also only ever used default-hyperparameter
+`ProphetModel`/`EtsModel`/etc. — never `changepoint_prior_scale=0.001`.
+
+**Does it affect this rolling benchmark's recorded results?** Checked
+directly against the live run's own output, not just reasoned about: for
+fold (`0388.HK`, origin `2025-10-07`) — chosen because the fallback fired
+twice while it was being processed — a fresh, isolated refit of the
+*identical* training slice for both `prophet` (Tier A, production config)
+and `prophet_no_yearly` (Tier D, ablation) reproduced the values already
+written to `forecast_paths.csv` **to 6+ decimal places**. The fallback
+never touches those two tiers. The *only* model variant that ever hits it
+is `prophet_optimized` (Tier C), and only its two `changepoint_prior_scale=0.001`
+grid candidates — which is exactly 2 of the grid's 8 candidates, matching
+the "2 per origin" pattern seen throughout the log. Per the condition set
+before this investigation ("if they differ or the fallback changes
+results, rerun prophet + prophet_no_yearly"): they don't differ, so **no
+rerun of any fold was needed.**
+
+**Worth keeping as a finding, not hiding as a bug:** that CmdStan's
+optimizer can't even converge via its primary algorithm at the
+low-regularization end of Prophet's own hyperparameter space, on real
+single-equity return series, is itself a small piece of evidence for the
+paper's "why does Prophet underperform" theme — Prophet's own tuning
+surface is fragile here, not just its default configuration's forecasts.
+`diagnostics.py`'s Tier-C summary should note how often each ticker's
+optimized-Prophet search landed on a grid point that needed the fallback.
+
+## Data staleness
+
+`daily_prices` `MAX(date)` was **2026-08-20** against a wall-clock "today"
+of **2026-10-16** (~2 months stale) when this benchmark was run. Two delta
+re-fetch attempts were run before starting and **both failed completely —
+0 new rows added across all 272/272 tickers, every single one returning
+HTTP 429 from Yahoo Finance** — consistent with the post-restart
+rate-limiting pattern already documented in `PROJECT_STATE.md`'s
+"Post-Stage-3 bug fixes" section, except this time it did not clear after
+~30+ minutes of continued attempts. **No further retries were made** —
+the snapshot (`research/data/snapshot_2026-10-16.csv`, `manifest.json`)
+is taken as of 2026-08-20 and that date is treated as final for this
+benchmark. This does not affect the *methodology* (rolling-origin CV,
+baselines, optimized tier, diagnostics), only how recent the underlying
+price history is.
+
+## Step 2 — rolling-origin benchmark (`rolling_benchmark.py`)
+
+- **Window:** expanding. First origin at 504 business days (~2 trading
+  years) into each ticker's series; step forward 30 trading days; forecast
+  horizon = 30 trading days. Step == horizon, so folds are **non-overlapping**
+  within a ticker.
+- **744 total origins** across the 30 tickers (23-25 per ticker, fewer for
+  tickers with less than the full 5y history).
+- **10 models per origin**, 4 tiers:
+  - **A — production-fixed** (exact production classes/configs, imported
+    directly from `analytics/app/models/`): `arima` (ARIMA(1,1,1)), `ets`
+    (additive trend+seasonal, period 5), `sarima` (SARIMA(1,1,1)(1,1,0,5)),
+    `prophet` (weekly+yearly on, daily off).
+  - **B — baselines** (`research/models_extra.py`): `random_walk` (forecast
+    = last close, flat), `random_walk_drift` (drift = mean first-difference
+    of the training window).
+  - **C — optimized** (`research/models_extra.py`): `arima_optimized`
+    (`d` via KPSS, `(p,q)` grid search 0..3 by AIC — statsmodels only, no
+    pmdarima); `ets_optimized` (statsmodels' state-space `ETSModel`, AICc-
+    selected over error {add,mul} × trend {none,add,damped-add} × seasonal
+    {none,add(5)}); `prophet_optimized` (grid over `changepoint_prior_scale`
+    {0.001,0.01,0.1,0.5} × `yearly_seasonality` {off,on}, model selected on
+    the **last 30 days of the training window** held out from the tuning
+    fits, then refit on the full window with the winning config).
+  - **D — ablation**: `prophet_no_yearly` — the production `ProphetModel`
+    class with `yearly_seasonality` forced off, nothing else changed
+    (subclasses `ProphetModel`, only overrides `fit()`; `predict()` is
+    inherited unchanged).
+- **Metrics per (ticker, origin, model):** `rmse`, `mae`,
+  `rmse_pct = rmse / mean_close * 100` (same formula as the existing
+  benchmark; `mean_close` here is the mean close over
+  train ∪ realized-horizon, the closest analog to the original's "mean over
+  the whole fetched series" now that train/horizon are no longer a fixed
+  80/20 split of one fixed-length series), `mase` (MAE divided by the
+  training window's in-sample one-step naive MAE, i.e. mean absolute first
+  difference), `train_time_s` (includes any hyperparameter-selection time
+  for tier C, since selection happens inside `fit()`), `inference_latency_ms`,
+  `memory_mb` (tracemalloc peak vs RSS delta, same approach as
+  `analytics/app/models/base.py`, replicated here since that wrapper's
+  internal 80/20 holdout logic is bypassed entirely — `research` calls
+  `fit()`/`predict()` directly).
+- **Timing hygiene:** strictly sequential (no parallelism); the **first**
+  fit of each of the 10 model types in the process is run and discarded as
+  warm-up and never written to `rolling_folds.csv`; global seed 42;
+  `os.getloadavg()` logged before/after every ticker.
+- **Resumable:** `rolling_folds.csv` is appended to per (ticker, model) as
+  each origin finishes; on restart, already-written (ticker, origin_date,
+  model) triples are read back and skipped. **Known edge case, hit once,
+  fixed:** warm-up tracking is in-memory per process, not persisted, so
+  the first not-yet-completed origin a *new* process encounters always
+  eats a warm-up discard for every model type, even if an *earlier*
+  process already used up its own warm-up discard on a different origin.
+  The 2-ticker/3-origin pilot run's warm-up pass fell on `0001.HK`'s very
+  first origin (`2023-09-12`) and discarded all 10 models there without
+  writing them; the subsequent full run was a fresh process, so it
+  independently re-discarded the same origin as *its* warm-up. Net
+  effect: that one (ticker, origin) pair — 10 of 7440 rows — was never
+  written by either run. Caught via a row-count check after completion
+  (743 vs. 744 expected origins for `arima`), confirmed as the cause by
+  diffing `0001.HK`'s completed origin dates against `0358.HK`'s (same
+  5-year history length, same origin set), and backfilled directly
+  (`run_fold()` called once per model for that exact origin, appended the
+  normal way) rather than left as a gap or silently re-run from scratch.
+  `rolling_folds.csv` is now complete: 7440 rows, 744 per model, 0 errors,
+  0 duplicate (ticker, origin_date, model) keys.
+- **Why the log said `folds_done=7380` at `RUN COMPLETE` while the CSV has
+  7,440 rows:** `folds_done` is a per-process counter in
+  `rolling_benchmark.py`'s `main()` that only increments when *that*
+  process actually computes and appends a row — it does **not** increment
+  for a (ticker, origin_date, model) key already found in `rolling_folds.csv`
+  at startup (the `completed` set loaded by `load_completed()`), since
+  those are `continue`d past before `run_fold()` is ever called. Verified
+  directly against `rolling_benchmark_run.log`: the full run's process
+  shows `0001.HK` origin 1 getting fresh `(warm-up fit for ..., discarded)`
+  lines for all 10 models (so it was *not* already in `completed` — this is
+  the pair the pilot's own warm-up had also eaten, per the edge case
+  above), immediately followed by origins 2 and 3 logged as "done" with
+  `folds_done` unchanged (0) and no warm-up or fit lines at all — i.e. those
+  60 rows (2 pilot tickers × 3 origins, minus the 1 pilot-run warm-up-eaten
+  origin = 5 origins × 10 models + the ticker-2 origin-1 that was also
+  pre-written = confirmed by inspecting `0358.HK`'s first `origin 1/25`
+  line, which also shows `folds_done` unchanged on first encounter) were
+  **pre-existing from the earlier pilot run** and silently skipped, not
+  recomputed. So: `folds_done` (7380, this process's own new rows) + rows
+  already present from the pilot and skipped (50) + the 10 rows backfilled
+  *after* `RUN COMPLETE` was logged (the edge case above, added via a
+  separate one-off `run_fold()` call, never counted by either process's
+  `folds_done`) = 7380 + 50 + 10 = **7440**, matching the final CSV exactly.
+  Nothing here was recomputed inconsistently or duplicated — confirmed by
+  the 0-duplicate-key check above.
+- **Pilot:** 2 tickers × 3 origins, run before the full job. Measured
+  ~10.5s/origin (10 models) at the cheapest (smallest-training-window)
+  origins; a direct timing check at the ticker's *largest* training window
+  (1224 rows) showed per-origin cost stays roughly flat (~9.9s) rather than
+  growing with window size — the grid-search tiers (`arima_optimized`
+  ~3.2s, `prophet_optimized` ~3.6s) dominate and don't scale badly with `n`
+  for the statsmodels fits involved. Projected full run: 744 origins × ~10s
+  ≈ **~2.1 hours**, comfortably under the ~4h threshold, so the full run
+  proceeded as specified rather than switching to a cheaper (e.g. step-60)
+  protocol.
+
+## Step 3 — why-Prophet diagnostics (`diagnostics.py`)
+
+Run only after `rolling_benchmark.py` finished, to avoid CPU contention
+biasing either run's timing measurements. Run and results below are from
+2026-10-21; everything in this section completed with 0 unexpected failures
+(the plotly-import warning in the log is pre-existing/harmless, unrelated
+to any model fit).
+
+1. **Stationarity:** ADF and KPSS on price levels and log prices, every
+   ticker, full available history. **Result:** 93.3% of tickers flagged
+   non-stationary by ADF at the 5% level on price levels (96.7% on log
+   prices); **100%** flagged non-stationary by KPSS on both transforms —
+   strong, consistent support for the near-random-walk hypothesis this
+   whole diagnostics suite is built around.
+2. **Ljung-Box(10,20):** on Prophet's in-sample residuals (`y - yhat` over
+   the training window) vs. random-walk in-sample residuals (first
+   differences), per ticker, at each ticker's **last** rolling origin.
+   **Result:** Prophet's in-sample residuals reject the white-noise null
+   (p<0.05) at **both** lags for **100%** of the 30 tickers — its fit
+   consistently leaves structure behind. Random-walk's first-differences
+   reject in only 60% of tickers at both lags — i.e. 40% of these series
+   look statistically like a driftless random walk even in-sample, and
+   even where RW is rejected it is rejected far less uniformly than Prophet.
+3. **Per-origin level/slope decomposition of Prophet's forecast error:**
+   `u_T = close_T - fitted_T` (Prophet's fitted value at the last training
+   date); `realized_slope = (actual_{T+30} - close_T)/30`;
+   `forecast_slope = (yhat_{T+30} - fitted_T)/30`;
+   `slope_error = realized_slope - forecast_slope`. **Decomposition used:**
+   linearizing Prophet's forecast as `fitted_T + forecast_slope·h` and the
+   realized path as `close_T + realized_slope·h`, so squared error at `h`
+   decomposes as `u_T² + 2·u_T·slope_error·h + slope_error²·h²` (level +
+   cross + slope terms), summed over `h=1..30`. This ignores Prophet's
+   seasonal wiggle around its trend line; `sse_linear_approx` vs
+   `sse_actual` in `diagnostics_prophet_decomp.csv` shows how good that
+   approximation is per fold. **Result:** the linear approximation is a
+   substantial *underestimate* of actual squared error — mean
+   `sse_actual / sse_linear_approx` across all 744 origins is **4.62**, so
+   this decomposition should be read as directional/qualitative (which
+   term dominates), not as an accurate error budget. Per-fold `level_share`
+   (mean 0.83) and `slope_share` (mean 0.96) both run high with a negative
+   mean `cross_share` (-0.80) — consistent with level offset and slope
+   error both mattering and partially offsetting each other in the linear
+   approximation, but the 4.62x gap to actual error means Prophet's
+   seasonal/weekly wiggle (deliberately excluded from this linearization)
+   is doing real work the decomposition doesn't capture.
+4. **Ablations:** (a) yearly seasonality on/off — derived directly from
+   `rolling_folds.csv` tiers A vs D, no extra fitting. **Result:**
+   `prophet` (yearly on) mean `rmse` 802.1 vs `prophet_no_yearly` 890.4 —
+   yearly seasonality *helps* on average (lower error with it on), the
+   opposite of what you'd expect if yearly Fourier terms fit from ~1-2
+   cycles of a near-random-walk series were pure overfitting noise; see
+   `diagnostics_prophet_ablation.csv` for the full mean/median/std table.
+   (b) training window length 1y/3y/5y at a fixed origin per ticker.
+   **Bug found and fixed:** the original implementation required a
+   *literal* 1260-business-day ("5y") history before the chosen origin and
+   skipped any ticker without one — but **no ticker in this 30-ticker
+   sample ever reaches 1260 business days** before its last usable origin
+   (max across all 30 is 1224, ≈4.85y, consistent with this README's own
+   "4.3-5.0 years of history" characterization above), so every ticker was
+   skipped, `rows` ended up empty, and `df.dropna(subset=["rmse"])` raised
+   `KeyError: ['rmse']` on the columnless empty DataFrame. Fixed in
+   `diagnostics.py::run_window_length_ablation` by using each ticker's own
+   *last* origin (maximum available training history) as the fixed origin,
+   and letting the "5y" tier mean "as much history as is actually
+   available, capped at 1260 days" rather than a literal 1260-day window —
+   the real `n_train` used is still recorded per row (~1219-1224 for the
+   "5y" tier, not 1260), so nothing is fabricated, just honestly labeled.
+   **Result:** mean `rmse` is 1023.0 (1y) → 675.6 (3y) → 1213.6 (5y) —
+   **non-monotonic**, with 3y the sweet spot; both less data (1y) and more
+   data (~5y) hurt production-config Prophet on this sample, a second data
+   point (alongside item 2's residual-structure finding) that Prophet's
+   problem here isn't simply "needs more history."
+5. **Diebold-Mariano vs. `random_walk`, h=30:** uses the `h=30` row of
+   `forecast_paths.csv` for every (ticker, origin, model). **Approximation
+   used:** pooled across tickers and origins — each (ticker, origin) pair's
+   loss differential `d = SE_model - SE_rw` is treated as one observation,
+   and a plain one-sample t-test (no HAC/Newey-West correction) is run on
+   the pooled `d` series per model. Non-overlap *within* a ticker
+   (step == horizon == 30) removes the usual within-series serial-
+   correlation problem DM corrects for; cross-ticker contemporaneous
+   correlation (shared market days/macro shocks) is **not** corrected for
+   and is a known limitation of this pooled approximation — stated here so
+   it can be flagged the same way in the paper. **Result:** `prophet`
+   (p=0.030) and `prophet_no_yearly` (p=0.005) are significantly worse than
+   `random_walk` at h=30 pooled across all 744 origins; no other model
+   (including `sarima`, `prophet_optimized`, `ets`) reaches significance
+   either direction at the 5% level, though `arima`/`arima_optimized`/
+   `ets_optimized` are directionally better (negative mean loss diff).
+
+## Step 4 — additional diagnostics (`diagnostics_extra.py`)
+
+Added on top of the Step 3 set above, per a follow-up request for finer
+breakdowns the original five didn't cover. Everything here reads only
+`rolling_folds.csv`/`forecast_paths.csv` — no DB connection, no model
+refitting — so it ran standalone (before the clean timing pass, since it
+needs neither Postgres nor Docker) and completed with 0 errors.
+
+1. **MAPE by horizon** (h=1,5,10,20,30, every model): confirms the
+   decomposition finding directly in MAPE terms — `prophet` MAPE rises from
+   6.58% (h=1) to 13.87% (h=30), vs. `arima`'s 0.37%→4.89% and
+   `random_walk`'s 1.22%→8.45%. Prophet is worse than the random walk at
+   every horizon from h=5 onward. Full table in
+   `diagnostics_mape_by_horizon.csv`.
+2. **Anchoring analysis:** `anchored_h = rw_forecast + (forecast_h -
+   forecast_1)` — removes each model's own level offset (its h=1 forecast
+   vs. the last close) while keeping its forecasted shape. Pooled RMS%
+   error (original → anchored → random_walk) and the mean absolute size of
+   the level correction itself (`mean_abs_h1_offset_pct`):
+
+   | model | original | anchored | random_walk | mean abs h=1 offset |
+   |---|---:|---:|---:|---:|
+   | prophet | 64.4% | 43.7% | 40.7% | 6.53% |
+   | prophet_no_yearly | 66.8% | 42.2% | 40.7% | 7.93% |
+   | prophet_optimized | 49.0% | 43.0% | 40.7% | 4.85% |
+   | sarima | 53.5% | 53.3% | 40.7% | 1.05% |
+   | arima | 38.4% | 39.3% | 40.7% | 0.24% |
+   | ets | 112.8% | 103.7% | 40.7% | 0.35% |
+
+   Anchoring closes most (but not all) of Prophet's gap to the random
+   walk — all three Prophet variants drop sharply toward (but stay above)
+   the RW figure once the level offset is removed, and that offset itself
+   (4.85-7.93%) is far larger than ARIMA's/SARIMA's (0.24-1.05%). `arima`
+   and `ets` get slightly *worse* when anchored (they already track the
+   last close closely, so this just adds noise), reinforcing that
+   Prophet's problem is disproportionately a level-offset problem, not
+   purely a shape/slope one. Full table in `diagnostics_anchoring.csv`.
+3. **Ticker-clustered paired tests vs. `random_walk`** (`rmse_pct`, 30
+   ticker-level means, paired t-test + Wilcoxon signed-rank per model):
+   all three Prophet variants and `sarima` are significantly worse than RW
+   at every ticker (`prophet`/`prophet_no_yearly`/`prophet_optimized`:
+   p<1e-6 both tests, 0/30 tickers beat RW on `prophet`/`prophet_no_yearly`;
+   `sarima`: p<1e-8, 1/30). `arima` and `ets_optimized` are directionally
+   better than RW (negative mean diff) but not significant (p≈0.42).
+   `random_walk_drift` and `ets` trend worse but, again, not significant.
+   Detail in `diagnostics_ticker_clustered.csv`, summary in
+   `diagnostics_ticker_clustered_summary.csv`.
+4. **Per-ticker Diebold-Mariano, h=30** (same approximation as Step 3 item
+   5, but run per ticker and aggregated rather than pooled — stated so the
+   difference is explicit: within-ticker non-overlap still justifies a
+   plain t-test per ticker, but the 30 resulting per-ticker statistics are
+   then only counted/averaged, not combined into a single formal
+   meta-analytic statistic, so cross-ticker correlation is unaddressed
+   here too): `sarima` is significantly worse than RW in 15/30 tickers (0
+   significantly better), `prophet`/`prophet_no_yearly` in 13 and 12 of 30
+   respectively; `arima`/`arima_optimized`/`ets_optimized` show no net
+   tendency either way (1 ticker each, split between directions). Detail
+   in `diagnostics_dm_per_ticker.csv`, summary in
+   `diagnostics_dm_per_ticker_summary.csv`.
+5. **Win counts, prod-4 and prod-4+random_walk, by fold and by ticker:**
+   the existing `win_count` column in `summary_by_model_tier.csv` counts
+   wins across all 10 variants, which understates Prophet's tier-A
+   standing because the three Prophet variants split its wins three ways —
+   this adds the narrower, cleaner comparisons.
+   - Within the 4 production models alone: `arima` wins 34.3% of folds and
+     **86.7% of tickers** (26/30) on mean `rmse_pct`; `ets` is a distant
+     second (24.3%/13.3%); `sarima` and `prophet` never win on a
+     per-ticker mean basis (0/30 each).
+   - Adding `random_walk`: `arima` still wins 63.3% of tickers (19/30),
+     `random_walk` itself wins 26.7% (8/30) — more ticker-level wins than
+     `ets`, `sarima`, or `prophet` combined — while by-fold shares even out
+     more (`arima` 18.0%, `ets` 23.0%, `sarima` 20.7%, `prophet` 20.2%,
+     `random_walk` 18.1%).
+   Full table in `diagnostics_win_counts.csv`.
+6. **Distribution of `selected_config` for the optimized tiers:**
+   `arima_optimized` spreads broadly across the grid (top: `(2,1,2)` 17.2%,
+   `(3,1,3)` 14.2%, `(0,1,1)` 10.1%) — no single order dominates;
+   `ets_optimized` concentrates heavily on no-trend configs (multiplicative
+   error, no trend: 56.0%; additive error, no trend: 30.4% — 86.4%
+   combined); `prophet_optimized` spreads across its 8-point grid with a
+   mild lean toward higher `changepoint_prior_scale` (`(0.5, True)` 21.4%
+   most common) — and note the two `changepoint_prior_scale=0.001` grid
+   points (9.7%/4.3%) are exactly the configs that trigger the cmdstan
+   Newton fallback documented below. Full table in
+   `diagnostics_selected_config_distribution.csv`.
+
+## Outputs
+
+All under `research/results/`:
+- `rolling_folds.csv` — one row per (ticker, origin, model): metrics + costs
+  (accuracy columns valid; cost columns host-contaminated, see above).
+- `forecast_paths.csv` — one row per (ticker, origin, model, h=1..30): the
+  full 30-step forecast path vs. realized actual, so h=5/10/20/30 metrics
+  can be sliced without re-running anything.
+- `summary_by_model_tier.csv` — mean/median/std of `rmse_pct`/`mase`, mean
+  costs, win counts/rates, old one-year numbers (`benchmark_results.csv`)
+  joined in for the 4 production models.
+- `timing_clean.csv` / `timing_clean_summary.csv` — the clean,
+  container-based cost measurements (authoritative for the paper's cost
+  claims); `timing_pass_run.log` is the raw run log copied back for the
+  record.
+- `diagnostics_stationarity.csv`, `diagnostics_ljungbox.csv`,
+  `diagnostics_prophet_decomp.csv`, `diagnostics_prophet_ablation.csv`,
+  `diagnostics_window_length.csv`, `diagnostics_diebold_mariano.csv` —
+  Step 3 (`diagnostics.py`).
+- `diagnostics_mape_by_horizon.csv`, `diagnostics_anchoring.csv`,
+  `diagnostics_ticker_clustered.csv` /
+  `diagnostics_ticker_clustered_summary.csv`, `diagnostics_dm_per_ticker.csv`
+  / `diagnostics_dm_per_ticker_summary.csv`, `diagnostics_win_counts.csv`,
+  `diagnostics_selected_config_distribution.csv` — Step 4
+  (`diagnostics_extra.py`).
+- `host_info.json` — CPU/RAM/library versions/execution context (host and
+  container).
+
+## Reproducing
+
+```
+python3 -m venv research/.venv
+research/.venv/bin/pip install pandas==2.2.2 numpy==1.26.4 statsmodels==0.14.4 \
+    psycopg2-binary==2.9.9 sqlalchemy==2.0.35 psutil==6.0.0 scipy prophet==1.1.5
+rm -rf research/.venv/lib/python3.10/site-packages/prophet/stan_model/cmdstan-2.33.1
+docker compose up -d   # postgres must be reachable on localhost:5432
+
+research/.venv/bin/python research/host_info.py
+research/.venv/bin/python research/snapshot.py
+research/.venv/bin/python research/rolling_benchmark.py      # ~2h; resumable
+research/.venv/bin/python research/diagnostics.py             # ~9 min
+research/.venv/bin/python research/diagnostics_extra.py       # <1s, no DB needed
+research/.venv/bin/python research/summarize.py
+
+# Clean timing pass (~2h51m): run inside python-api via docker cp, not the
+# host venv — see "Clean timing pass" above for the exact sequence (stop
+# node-api/client/celery-worker/flower/redis first, docker cp the 4 .py
+# files in, run, docker cp timing_clean*.csv back out, rm -rf /research
+# inside the container, docker compose start the stopped services, confirm
+# /health). Do not bind-mount (docker-compose.override.yml.disabled exists
+# but is intentionally unused — blocked by macOS folder permissions).
+```

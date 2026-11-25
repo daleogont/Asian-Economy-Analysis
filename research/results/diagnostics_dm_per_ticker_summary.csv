@@ -1,0 +1,10 @@
+model,n_tickers,n_tickers_model_better_direction,n_tickers_significant_better_p05,n_tickers_significant_worse_p05,mean_tstat_across_tickers
+arima,30,20,0,0,-0.4269587661365334
+arima_optimized,30,17,1,0,-0.1415429062469552
+ets_optimized,30,14,1,1,-0.0028101233598761153
+random_walk_drift,30,7,0,3,0.6837277685869072
+ets,30,3,0,2,0.8478525438841427
+prophet_optimized,30,2,0,4,1.4124987545406327
+prophet_no_yearly,30,2,0,12,1.7560607568497824
+prophet,30,2,0,13,1.893252499301636
+sarima,30,0,0,15,1.9974429957239854

@@ -1,0 +1,38 @@
+{
+  "platform": "macOS-26.5.2-x86_64-i386-64bit",
+  "python_version": "3.10.1 (v3.10.1:2cd268a3a9, Dec  6 2021, 14:28:59) [Clang 13.0.0 (clang-1300.0.29.3)]",
+  "execution_context": "Host machine, dedicated venv at research/.venv -- NOT inside the python-api Docker container (that image has no bind mount and no research/ dependencies by design; see research/README.md). No Docker CPU/memory limits apply to this run.",
+  "cpu_model": "Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz",
+  "physical_cores": 4,
+  "logical_cores": 8,
+  "total_ram_gb": 16.0,
+  "loadavg_at_collection": [
+    4.23388671875,
+    3.43798828125,
+    3.259765625
+  ],
+  "library_versions": {
+    "pandas": "2.2.2",
+    "numpy": "1.26.4",
+    "statsmodels": "0.14.4",
+    "prophet": "1.1.5",
+    "scipy": "1.15.3",
+    "scikit-learn": null,
+    "psutil": "6.0.0",
+    "sqlalchemy": "2.0.35",
+    "psycopg2-binary": "2.9.9",
+    "cmdstanpy": "1.3.0"
+  },
+  "note": "scipy differs from the python-api container (1.15.3 here vs 1.17.1 there) because this venv's Python is 3.10.1 (scipy 1.17.1 requires >=3.11) and scipy is not version-pinned in analytics/requirements.txt, so each environment's pip resolved whatever scipy build matches its own interpreter. Everything else (statsmodels/prophet/cmdstanpy/numpy/pandas) matches exactly. See research/README.md for the Tier-A forecast-difference comparison this produced.",
+  "container_execution_context": {
+    "image": "built from analytics/Dockerfile, python:3.11-slim (Debian 13 trixie) base",
+    "container_cpu_limit": "none set in docker-compose.yml (NanoCpus=0) -- shares the full Docker Desktop VM allocation",
+    "container_memory_limit": "none set in docker-compose.yml (Memory=0) -- shares the full Docker Desktop VM allocation",
+    "docker_desktop_vm_allocation": {"cpus": 8, "total_memory_gb": 7.666},
+    "library_versions": {
+      "pandas": "2.2.2", "numpy": "1.26.4", "statsmodels": "0.14.4",
+      "prophet": "1.1.5", "cmdstanpy": "1.3.0", "scipy": "1.17.1", "scikit-learn": "1.5.2"
+    },
+    "python_version": "3.11 (python:3.11-slim base image)"
+  }
+}

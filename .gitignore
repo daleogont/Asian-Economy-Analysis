@@ -10,3 +10,6 @@ client/coverage/
 PROJECT_STATE.md
 __pycache__/
 *.pyc
+research/.venv/
+research_for_paper.zip
+research/results/*.log

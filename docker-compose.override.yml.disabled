@@ -1,0 +1,13 @@
+# Research-only addition, NOT part of the production compose config.
+# Mounts research/ read-only into python-api (plus a writable subpath for
+# results) so the Step-2 clean timing pass can run inside the actual
+# production container (Linux, same image, no host CPU contention from
+# unrelated host processes). Does not change the service's command, image,
+# ports, or any runtime behavior -- purely adds two bind mounts.
+# Safe to delete after the timing pass is done; `docker compose` picks this
+# file up automatically alongside docker-compose.yml.
+services:
+  python-api:
+    volumes:
+      - ./research:/research:ro
+      - ./research/results:/research/results:rw

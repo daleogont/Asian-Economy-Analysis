@@ -1,0 +1,193 @@
+{
+  "generated_at": "2026-10-16",
+  "csv_file": "snapshot_2026-10-16.csv",
+  "csv_sha256": "dbab6131787c58911a473a36e198eba1e1f7a7359eeb08ecb874eeb539477625",
+  "n_tickers_requested": 30,
+  "n_tickers_found": 30,
+  "missing_tickers": [],
+  "global_min_date": "2021-10-17",
+  "global_max_date": "2026-08-20",
+  "db_staleness_note": "daily_prices MAX(date) lagged ~2 months behind wall-clock 'today' at snapshot time; see README.md for detail.",
+  "per_ticker": [
+    {
+      "ticker": "0001.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "0358.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "0388.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "0857.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "1101.TW",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1176
+    },
+    {
+      "ticker": "1211.SR",
+      "min_date": "2021-10-17",
+      "max_date": "2026-08-20",
+      "row_count": 1212
+    },
+    {
+      "ticker": "2082.SR",
+      "min_date": "2021-12-19",
+      "max_date": "2026-08-20",
+      "row_count": 1168
+    },
+    {
+      "ticker": "2802.T",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1184
+    },
+    {
+      "ticker": "3045.TW",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1176
+    },
+    {
+      "ticker": "3988.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "5225.KL",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1188
+    },
+    {
+      "ticker": "6012.KL",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1188
+    },
+    {
+      "ticker": "7052.KL",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1188
+    },
+    {
+      "ticker": "8801.T",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1184
+    },
+    {
+      "ticker": "9433.T",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1184
+    },
+    {
+      "ticker": "9988.HK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1190
+    },
+    {
+      "ticker": "APOLLOHOSP.NS",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1200
+    },
+    {
+      "ticker": "BBRI.JK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1163
+    },
+    {
+      "ticker": "CC3.SI",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1216
+    },
+    {
+      "ticker": "CRC.BK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1179
+    },
+    {
+      "ticker": "DCR.KA",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-19",
+      "row_count": 1241
+    },
+    {
+      "ticker": "DLF.NS",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1201
+    },
+    {
+      "ticker": "FPT.VN",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1264
+    },
+    {
+      "ticker": "GOTO.JK",
+      "min_date": "2022-04-11",
+      "max_date": "2026-08-20",
+      "row_count": 1043
+    },
+    {
+      "ticker": "HINDUNILVR.NS",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1201
+    },
+    {
+      "ticker": "SCC.BK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1179
+    },
+    {
+      "ticker": "SE",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-19",
+      "row_count": 1214
+    },
+    {
+      "ticker": "UBL.KA",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-19",
+      "row_count": 1242
+    },
+    {
+      "ticker": "VHM.VN",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-20",
+      "row_count": 1264
+    },
+    {
+      "ticker": "WIKA.JK",
+      "min_date": "2021-10-18",
+      "max_date": "2026-08-19",
+      "row_count": 1166
+    }
+  ]
+}

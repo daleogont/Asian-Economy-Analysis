@@ -3,11 +3,13 @@ import logging
 import os
 from datetime import datetime, timezone
 
+import pandas as pd
 import redis
 from sqlalchemy import text
 
 from app.celery_app import celery_app
 from app.db import engine, fetch_df
+from app.validation import run_rolling_origin
 
 logger = logging.getLogger(__name__)
 
@@ -155,4 +157,69 @@ def run_market_analysis(self):
     result = {"countries_analyzed": len(country_stats), "country_stats": country_stats}
     _save_result(task_id, "run_market_analysis", {}, result, "success")
     _publish(task_id, "run_market_analysis", "success", result)
+    return result
+
+
+_PERIOD_DAYS = {"6m": 180, "1y": 365, "2y": 730, "5y": 1825}
+
+
+@celery_app.task(bind=True, name="app.tasks.run_rolling_validation")
+def run_rolling_validation(
+    self,
+    ticker: str,
+    models: list,
+    min_train: int,
+    origin_step: int,
+    horizon: int,
+    window: str,
+    period: str,
+):
+    """
+    Rolling-origin cross-validation for one ticker — always run via Celery
+    (never inline on the request path) since it re-fits every model at
+    every origin. Mirrors research/rolling_benchmark.py's methodology.
+    """
+    task_id = self.request.id
+    input_data = {
+        "ticker": ticker, "models": models, "min_train": min_train,
+        "origin_step": origin_step, "horizon": horizon, "window": window, "period": period,
+    }
+    logger.info("[ROLLING] task_id=%s  %s", task_id, input_data)
+
+    days = _PERIOD_DAYS.get(period, 1825)
+    df = fetch_df(
+        """
+        SELECT date, close
+        FROM daily_prices
+        WHERE ticker = :ticker
+          AND date >= CURRENT_DATE - (:days || ' days')::interval
+          AND close IS NOT NULL
+        ORDER BY date ASC
+        """,
+        {"ticker": ticker.upper(), "days": days},
+    )
+    if df.empty:
+        result = {"error": f"No price data for ticker '{ticker}'"}
+        _save_result(task_id, "run_rolling_validation", input_data, result, "failure")
+        _publish(task_id, "run_rolling_validation", "failure", result)
+        return result
+
+    df["date"] = pd.to_datetime(df["date"])
+    df["close"] = df["close"].astype(float)
+    series = df.set_index("date")["close"].asfreq("B").ffill()
+
+    try:
+        result = run_rolling_origin(
+            series, models,
+            min_train=min_train, origin_step=origin_step, horizon=horizon, window=window,
+        )
+        result["ticker"] = ticker.upper()
+        status = "success"
+    except Exception as exc:
+        result = {"error": str(exc)}
+        status = "failure"
+
+    logger.info("[ROLLING] task_id=%s  status=%s", task_id, status)
+    _save_result(task_id, "run_rolling_validation", input_data, result, status)
+    _publish(task_id, "run_rolling_validation", status, result)
     return result

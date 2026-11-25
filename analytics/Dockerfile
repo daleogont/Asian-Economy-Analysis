@@ -24,5 +24,6 @@ RUN rm -rf "$(python -c 'import prophet, os; print(os.path.dirname(prophet.__fil
 
 COPY app/ ./app/
 COPY scripts/ ./scripts/
+COPY tests/ ./tests/
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

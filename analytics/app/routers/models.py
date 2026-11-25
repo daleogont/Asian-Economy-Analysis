@@ -10,6 +10,7 @@ from app.db import engine, fetch_df
 from app.models.arima import ArimaModel
 from app.models.ets import EtsModel
 from app.models.lstm import LstmModel
+from app.models.naive import NaiveModel
 from app.models.prophet import ProphetModel
 from app.models.random_forest import RandomForestModel
 from app.models.ridge import RidgeModel
@@ -33,6 +34,7 @@ MODEL_REGISTRY = {
     "random_forest": RandomForestModel,
     "xgboost":       XgboostModel,
     "lstm":          LstmModel,
+    "naive":         NaiveModel,
 }
 
 # LSTM needs a longer minimum history than the other models: its 60-day

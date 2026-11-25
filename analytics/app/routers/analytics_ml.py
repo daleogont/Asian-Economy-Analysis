@@ -30,6 +30,19 @@ def _wide_prices(df: pd.DataFrame) -> pd.DataFrame:
     return df.pivot_table(index="date", columns="ticker", values="close", aggfunc="last")
 
 
+def correlation_distance_matrix(returns: pd.DataFrame):
+    """rho -> d = sqrt(2*(1-rho)) on daily returns. Shared by the MST/
+    hierarchical-clustering work (analytics/scripts/validate_distance_methods.py
+    today; the /analytics/network and ordered-heatmap endpoints reuse this
+    too) so every consumer agrees on the same distance definition."""
+    tickers = sorted(returns.columns)
+    corr = returns[tickers].corr(method="pearson").to_numpy()
+    corr = np.clip(corr, -1.0, 1.0)
+    dist = np.sqrt(2 * (1 - corr))
+    np.fill_diagonal(dist, 0.0)
+    return tickers, dist
+
+
 @router.get("/correlation")
 def correlation(
     country: str = Query(...),

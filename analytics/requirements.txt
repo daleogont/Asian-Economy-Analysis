@@ -7,6 +7,13 @@ psycopg2-binary==2.9.9
 sqlalchemy==2.0.35
 python-dotenv==1.0.1
 celery[redis]==5.3.6
+# Pinned explicitly: celery[redis]==5.3.6 itself requires redis<6.0.0, but a
+# freshly resolved kombu (no pin previously) has since added a runtime check
+# demanding redis-py>=6.1.0 -- an upstream deadlock between the two that
+# surfaced the moment this image was rebuilt from scratch today, unrelated
+# to anything in this change. Pinning kombu back to celery 5.3.6's own
+# floor avoids pulling that newer, incompatible kombu release.
+kombu==5.3.4
 redis==5.0.8
 flower==2.0.1
 websockets==13.1
@@ -17,3 +24,6 @@ xgboost==1.7.6
 yfinance>=0.2.50
 requests==2.32.3
 torch==2.1.2+cpu
+scipy==1.15.3
+pytest==8.3.3
+httpx==0.27.2

@@ -511,6 +511,17 @@ paths:
 
         `detection_method` reports which method(s) flagged the company:
         `"isolation_forest"`, `"zscore"`, `"both"`, or `null` if not anomalous.
+
+        `include_knn=true` adds a third, independent detector: distance to
+        the `knn_k`-th nearest neighbor in the same standardized
+        (mean_weekly_return, volatility) space `/analytics/clusters` uses,
+        flagged above the `knn_percentile` percentile. Off by default —
+        this detector has not been event-study validated like the other
+        two, and the default response is byte-identical whether or not
+        this parameter exists. When included, `detection_method` may
+        report `"knn_distance"` alone or combined with the others
+        (`"isolation_forest+knn_distance"`, etc.) — the pre-existing
+        `"both"` string is only ever isolation_forest+zscore, unchanged.
       parameters:
         - name: country
           in: query
@@ -528,6 +539,19 @@ paths:
             default: 1y
             enum: [3m, 6m, 1y, 2y, 5y]
             example: 1y
+        - name: include_knn
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+        - name: knn_k
+          in: query
+          required: false
+          description: Which nearest neighbor's distance to use.
+          schema: { type: integer, default: 5, minimum: 1, maximum: 20 }
+        - name: knn_percentile
+          in: query
+          required: false
+          schema: { type: number, default: 95.0, minimum: 50.0, maximum: 99.9 }
       responses:
         "200":
           description: Anomaly scan computed successfully
@@ -688,6 +712,81 @@ paths:
                 $ref: "#/components/schemas/Error"
         "422":
           description: Fewer than 2 tickers with data in the given country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/similar/{ticker}:
+    get:
+      tags: [Network]
+      summary: The n companies closest to a given ticker
+      description: |
+        `space=features`: Euclidean distance on standardized
+        (mean_weekly_return, volatility) — same feature definition
+        `/analytics/clusters` uses. `scope=global` allowed.
+
+        `space=correlation`: `d = sqrt(2*(1-rho))` on daily returns, same
+        definition `/analytics/network` uses. **`scope=country` only** —
+        comparing correlation across exchanges with non-overlapping
+        trading days/holidays would conflate "didn't trade on the same
+        days" with "genuinely uncorrelated", so `scope=global` is
+        rejected (400) for this space rather than silently returning a
+        distorted number.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema: { type: string, example: 9988.HK }
+        - name: n
+          in: query
+          required: false
+          schema: { type: integer, default: 5, minimum: 1, maximum: 20 }
+        - name: space
+          in: query
+          required: false
+          schema: { type: string, default: features, enum: [features, correlation] }
+        - name: scope
+          in: query
+          required: false
+          schema: { type: string, default: country, enum: [country, global] }
+        - name: period
+          in: query
+          required: false
+          schema: { type: string, default: 1y, enum: [3m, 6m, 1y, 2y, 5y] }
+      responses:
+        "200":
+          description: Nearest companies, sorted by distance ascending
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimilarResponse"
+              example:
+                ticker: 9988.HK
+                space: features
+                scope: country
+                country: China
+                n: 5
+                results:
+                  - ticker: 3690.HK
+                    name: Meituan
+                    sector: Consumer Discretionary
+                    distance: 0.7063
+                computation_time_ms: 47.3
+        "400":
+          description: space=correlation requested with scope=global
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Unknown ticker, or no price data in the requested scope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Not enough feature/return data for the given ticker
           content:
             application/json:
               schema:
@@ -1205,8 +1304,16 @@ components:
         detection_method:
           type: string
           nullable: true
-          enum: [isolation_forest, zscore, both, null]
+          description: >-
+            "isolation_forest", "zscore", "both" (isolation_forest+zscore, the original
+            two-detector string, unchanged), null, or -- only when include_knn=true --
+            "knn_distance" alone or combined with the others (e.g. "isolation_forest+knn_distance").
           example: isolation_forest
+        knn_distance:
+          type: number
+          nullable: true
+          description: Present only when the request set include_knn=true.
+          example: 0.8123
 
     AnomalyResponse:
       type: object
@@ -1447,3 +1554,28 @@ components:
         result:
           nullable: true
           $ref: "#/components/schemas/BatchBenchmarkResult"
+
+    SimilarCompany:
+      type: object
+      properties:
+        ticker: { type: string, example: 3690.HK }
+        name: { type: string, example: Meituan }
+        sector: { type: string, example: Consumer Discretionary }
+        distance: { type: number, example: 0.7063 }
+
+    SimilarResponse:
+      type: object
+      properties:
+        ticker: { type: string, example: 9988.HK }
+        space: { type: string, enum: [features, correlation] }
+        scope: { type: string, enum: [country, global] }
+        country:
+          type: string
+          nullable: true
+          description: The ticker's own country when scope=country; null when scope=global.
+          example: China
+        n: { type: integer, example: 5 }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/SimilarCompany" }
+        computation_time_ms: { type: number, example: 47.3 }

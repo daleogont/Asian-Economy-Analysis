@@ -8,7 +8,7 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException, Query
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.sparse.csgraph import minimum_spanning_tree
-from scipy.spatial.distance import squareform
+from scipy.spatial.distance import pdist, squareform
 from sklearn.cluster import KMeans
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
@@ -142,12 +142,24 @@ def correlation(
 def anomalies(
     country: str = Query(...),
     period:  str = Query("1y"),
+    include_knn: bool = Query(False),
+    knn_k: int = Query(5, ge=1, le=20),
+    knn_percentile: float = Query(95.0, ge=50.0, le=99.9),
 ):
     """
     Flags anomalous companies within a country by two independent methods:
       - IsolationForest over each company's weekly-return time series
       - a simple Z-score on each company's latest weekly return vs its own
         history (|z| > 2)
+
+    `include_knn=true` adds a third, independent detector: for each company,
+    the Euclidean distance (in the same standardized mean-weekly-return +
+    volatility space `/analytics/clusters` uses) to its `knn_k`-th nearest
+    neighbor within the country. Companies above the `knn_percentile`
+    percentile of that distance are flagged `"knn_distance"`. Off by
+    default — this detector has not been event-study validated the way the
+    other two have, so it never changes the default response; opt in
+    explicitly to see it.
     """
     days = _period_to_days(period)
 
@@ -188,6 +200,33 @@ def anomalies(
     labels = clf.fit_predict(X)        # -1 == anomaly
     scores = -clf.decision_function(X)  # higher == more anomalous
 
+    # kNN-distance detector — same (mean_weekly_return, volatility) feature
+    # definition as /analytics/clusters, standardized before distances so
+    # neither feature dominates. Only computed when requested.
+    knn_distance_by_ticker = {}
+    if include_knn:
+        k = min(knn_k, len(tickers) - 1)
+        mean_weekly_return = weekly_returns[tickers].mean(axis=0)
+        volatility = weekly_returns[tickers].std(axis=0)
+        knn_tickers = [
+            t for t in tickers
+            if pd.notna(mean_weekly_return.get(t)) and pd.notna(volatility.get(t))
+        ]
+        if k >= 1 and len(knn_tickers) > k:
+            features = np.column_stack([
+                mean_weekly_return[knn_tickers].to_numpy(),
+                volatility[knn_tickers].to_numpy(),
+            ])
+            X_scaled = StandardScaler().fit_transform(features)
+            dmat = squareform(pdist(X_scaled))
+            kth_dist = np.sort(dmat, axis=1)[:, k]  # index 0 is self (distance 0)
+            threshold = float(np.percentile(kth_dist, knn_percentile))
+            for i, t in enumerate(knn_tickers):
+                knn_distance_by_ticker[t] = {
+                    "distance": float(kth_dist[i]),
+                    "is_anomaly": bool(kth_dist[i] > threshold),
+                }
+
     results = []
     for i, ticker in enumerate(tickers):
         series = weekly_returns[ticker].dropna()
@@ -198,24 +237,37 @@ def anomalies(
 
         is_if_anomaly = bool(labels[i] == -1)
         is_z_anomaly  = bool(abs(zscore) > 2)
+        knn_info = knn_distance_by_ticker.get(ticker)
+        is_knn_anomaly = bool(knn_info["is_anomaly"]) if knn_info else False
 
-        if is_if_anomaly and is_z_anomaly:
-            method = "both"
-        elif is_if_anomaly:
-            method = "isolation_forest"
-        elif is_z_anomaly:
-            method = "zscore"
-        else:
+        fired = []
+        if is_if_anomaly:
+            fired.append("isolation_forest")
+        if is_z_anomaly:
+            fired.append("zscore")
+        if include_knn and is_knn_anomaly:
+            fired.append("knn_distance")
+
+        if not fired:
             method = None
+        elif len(fired) == 1:
+            method = fired[0]
+        elif set(fired) == {"isolation_forest", "zscore"}:
+            method = "both"  # preserved exactly as before include_knn existed
+        else:
+            method = "+".join(fired)
 
-        results.append({
+        row = {
             "ticker":               ticker,
             "latest_weekly_return": round(latest_return, 4),
             "anomaly_score":        round(float(scores[i]), 4),
-            "is_anomaly":           is_if_anomaly or is_z_anomaly,
+            "is_anomaly":           is_if_anomaly or is_z_anomaly or is_knn_anomaly,
             "zscore":               round(float(zscore), 4),
             "detection_method":     method,
-        })
+        }
+        if include_knn:
+            row["knn_distance"] = round(knn_info["distance"], 4) if knn_info else None
+        results.append(row)
 
     results.sort(key=lambda r: r["anomaly_score"], reverse=True)
     anomaly_count = sum(1 for r in results if r["is_anomaly"])
@@ -411,5 +463,125 @@ def network(
         "period":             period,
         "nodes":              nodes,
         "edges":              edges,
+        "computation_time_ms": computation_time_ms,
+    }
+
+
+@router.get("/similar/{ticker}")
+def similar(
+    ticker: str,
+    n:      int = Query(5, ge=1, le=20),
+    space:  str = Query("features", pattern="^(features|correlation)$"),
+    scope:  str = Query("country", pattern="^(country|global)$"),
+    period: str = Query("1y"),
+):
+    """
+    The `n` companies closest to `ticker`:
+      - `space=features`: Euclidean distance on standardized
+        (mean_weekly_return, volatility) — same feature definition
+        `/analytics/clusters` uses. `scope=global` allowed.
+      - `space=correlation`: d = sqrt(2*(1-rho)) on daily returns, the
+        same definition `/analytics/network` uses. **`scope=country`
+        only** — comparing correlation across exchanges with
+        non-overlapping trading days/holidays would conflate "didn't
+        trade on the same days" with "genuinely uncorrelated", so
+        `scope=global` is rejected (400) for this space rather than
+        silently returning a distorted number.
+    """
+    ticker = ticker.upper()
+
+    if space == "correlation" and scope == "global":
+        raise HTTPException(
+            status_code=400,
+            detail="space=correlation only supports scope=country — cross-country correlation "
+                   "would conflate non-synchronous trading calendars with genuine decorrelation.",
+        )
+
+    meta_lookup = fetch_df(
+        "SELECT ticker, country FROM companies WHERE ticker = :ticker", {"ticker": ticker}
+    )
+    if meta_lookup.empty:
+        raise HTTPException(status_code=404, detail=f"Unknown ticker '{ticker}'")
+    own_country = meta_lookup.iloc[0]["country"]
+
+    days = _period_to_days(period)
+    country_filter = "AND c.country = :country" if scope == "country" else ""
+    params = {"days": days}
+    if scope == "country":
+        params["country"] = own_country
+
+    df = fetch_df(
+        f"""
+        SELECT dp.ticker, dp.date, dp.close, c.name, c.sector
+        FROM daily_prices dp
+        JOIN companies c ON dp.ticker = c.ticker
+        WHERE dp.date >= CURRENT_DATE - (:days || ' days')::interval
+          AND dp.close IS NOT NULL
+          {country_filter}
+        ORDER BY dp.date ASC
+        """,
+        params,
+    )
+
+    if df.empty or ticker not in df["ticker"].unique():
+        raise HTTPException(status_code=404, detail=f"No price data for '{ticker}' in the requested scope")
+
+    start = time.perf_counter()
+
+    meta = df.drop_duplicates("ticker").set_index("ticker")[["name", "sector"]]
+    wide = _wide_prices(df)
+
+    if space == "features":
+        weekly_returns = wide.resample("W-FRI").last().pct_change()
+        mean_weekly_return = weekly_returns.mean(axis=0)
+        volatility = weekly_returns.std(axis=0)
+        candidates = [
+            t for t in wide.columns
+            if pd.notna(mean_weekly_return.get(t)) and pd.notna(volatility.get(t))
+        ]
+        if ticker not in candidates or len(candidates) < 2:
+            raise HTTPException(status_code=422, detail=f"Not enough feature data for '{ticker}'")
+
+        features = pd.DataFrame({
+            "mean_weekly_return": mean_weekly_return[candidates],
+            "volatility":         volatility[candidates],
+        })
+        X_scaled = StandardScaler().fit_transform(features.to_numpy())
+        idx = {t: i for i, t in enumerate(candidates)}
+        target_vec = X_scaled[idx[ticker]]
+        dists = np.linalg.norm(X_scaled - target_vec, axis=1)
+        pairs = [(t, float(dists[idx[t]])) for t in candidates if t != ticker]
+    else:
+        returns = wide.pct_change().dropna(how="all")
+        candidates, dist_matrix = correlation_distance_matrix(returns)
+        if ticker not in candidates or len(candidates) < 2:
+            raise HTTPException(status_code=422, detail=f"Not enough return data for '{ticker}'")
+
+        idx = {t: i for i, t in enumerate(candidates)}
+        ti = idx[ticker]
+        pairs = [(t, float(dist_matrix[ti, idx[t]])) for t in candidates if t != ticker]
+
+    pairs.sort(key=lambda p: p[1])
+    top = pairs[:n]
+
+    results = [
+        {
+            "ticker":   t,
+            "name":     meta.loc[t, "name"],
+            "sector":   meta.loc[t, "sector"],
+            "distance": round(d, 4),
+        }
+        for t, d in top
+    ]
+
+    computation_time_ms = round((time.perf_counter() - start) * 1000, 3)
+
+    return {
+        "ticker":             ticker,
+        "space":              space,
+        "scope":              scope,
+        "country":            own_country if scope == "country" else None,
+        "n":                  n,
+        "results":            results,
         "computation_time_ms": computation_time_ms,
     }

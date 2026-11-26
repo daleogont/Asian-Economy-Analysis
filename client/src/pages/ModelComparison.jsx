@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ParetoChart from "../components/ParetoChart";
+import { DEFAULT_BUDGETS, computeScore } from "../utils/score";
 
 const MODELS = [
   { key: "arima",         label: "ARIMA" },
@@ -32,6 +33,12 @@ const COLUMNS = [
     tooltip: "Whole-process memory delta during fit+predict (includes native allocations tracemalloc can't see). Coarser, but complete.",
   },
   { key: "cache",                 label: "Cache" },
+  {
+    key: "score",
+    label: "Score",
+    tooltip: "100 * (RMSE_min / RMSE) * product of min(1, budget_j / cost_j) over latency, "
+      + "train time, and memory. 100 only for the most accurate model here AND within every budget.",
+  },
 ];
 
 const fmt = (v, digits = 4) => (v == null ? "—" : Number(v).toFixed(digits));
@@ -43,6 +50,7 @@ const ModelComparison = () => {
   const [running, setRunning] = useState(false);
   const [sortBy, setSortBy] = useState("rmse");
   const [sortDir, setSortDir] = useState("asc");
+  const [budgets, setBudgets] = useState(DEFAULT_BUDGETS);
 
   const runBenchmark = () => {
     if (!ticker || running) return;
@@ -92,8 +100,25 @@ const ModelComparison = () => {
     [results]
   );
 
-  const readyRows = rows.filter((r) => r.status === "done" && r.metrics?.rmse != null);
+  const readyRowsBase = rows.filter((r) => r.status === "done" && r.metrics?.rmse != null);
   const notReadyRows = rows.filter((r) => !(r.status === "done" && r.metrics?.rmse != null));
+
+  const rmseMin = readyRowsBase.length
+    ? Math.min(...readyRowsBase.map((r) => r.metrics.rmse))
+    : null;
+  const readyRows = readyRowsBase.map((r) => ({
+    ...r,
+    score: computeScore(
+      r.metrics.rmse,
+      rmseMin,
+      {
+        latencyMs: r.metrics.inference_latency_ms,
+        trainTimeS: r.metrics.train_time_s,
+        memoryMb: r.metrics.memory_mb,
+      },
+      budgets
+    ),
+  }));
 
   const rmseRanked = [...readyRows].sort((a, b) => a.metrics.rmse - b.metrics.rmse);
   const showRanking = rmseRanked.length >= 5;
@@ -114,6 +139,7 @@ const ModelComparison = () => {
     return [...readyRows].sort((a, b) => {
       if (sortBy === "model") return dir * a.label.localeCompare(b.label);
       if (sortBy === "cache") return dir * String(a.cache ?? "").localeCompare(String(b.cache ?? ""));
+      if (sortBy === "score") return dir * ((a.score ?? 0) - (b.score ?? 0));
       return dir * ((a.metrics[sortBy] ?? 0) - (b.metrics[sortBy] ?? 0));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -183,6 +209,42 @@ const ModelComparison = () => {
         )}
       </div>
 
+      <div className="bg-white rounded-xl shadow p-5 mb-8 flex flex-wrap items-end gap-4">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Latency budget (ms)</label>
+          <input
+            type="number" min={0} value={budgets.latencyMs}
+            onChange={(e) => setBudgets((b) => ({ ...b, latencyMs: Number(e.target.value) }))}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm w-28"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Train time budget (s)</label>
+          <input
+            type="number" min={0} value={budgets.trainTimeS}
+            onChange={(e) => setBudgets((b) => ({ ...b, trainTimeS: Number(e.target.value) }))}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm w-28"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Memory budget (MB)</label>
+          <input
+            type="number" min={0} value={budgets.memoryMb}
+            onChange={(e) => setBudgets((b) => ({ ...b, memoryMb: Number(e.target.value) }))}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm w-28"
+          />
+        </div>
+        <button
+          onClick={() => setBudgets(DEFAULT_BUDGETS)}
+          className="px-3 py-1.5 text-sm rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition"
+        >
+          Reset budgets
+        </button>
+        <span className="text-xs text-gray-400">
+          Score = 100 x (RMSE_min / RMSE) x product of min(1, budget / cost). Recomputes instantly — no new runs.
+        </span>
+      </div>
+
       {Object.keys(results).length > 0 && (
         <div className="overflow-x-auto mb-6">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md text-sm">
@@ -215,17 +277,17 @@ const ModelComparison = () => {
                   >
                     <td className="px-4 py-2 font-medium">{row.label}</td>
                     {row.status === "loading" && (
-                      <td colSpan={6} className="px-4 py-2 text-gray-400 text-xs">
+                      <td colSpan={7} className="px-4 py-2 text-gray-400 text-xs">
                         Running…
                       </td>
                     )}
                     {row.status === "error" && (
-                      <td colSpan={6} className="px-4 py-2 text-red-500 text-xs">
+                      <td colSpan={7} className="px-4 py-2 text-red-500 text-xs">
                         {row.error}
                       </td>
                     )}
                     {row.status === "idle" && (
-                      <td colSpan={6} className="px-4 py-2 text-gray-300 text-xs">
+                      <td colSpan={7} className="px-4 py-2 text-gray-300 text-xs">
                         —
                       </td>
                     )}
@@ -255,6 +317,9 @@ const ModelComparison = () => {
                           <span className="text-xs text-gray-300">—</span>
                         )}
                       </td>
+                    )}
+                    {row.status === "done" && (
+                      <td className="px-4 py-2 font-semibold">{fmt(row.score, 1)}</td>
                     )}
                   </tr>
                 );

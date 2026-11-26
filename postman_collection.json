@@ -1258,6 +1258,146 @@
                 "description": "Minimum spanning tree over the correlation-distance matrix (d = sqrt(2*(1-rho))) for every company in a country. nodes (ticker/name/sector) + edges (source/target/distance)."
               },
               "response": []
+            },
+            {
+              "name": "Anomalies — Japan (with kNN detector)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/anomalies?country=Japan&period=1y&include_knn=true&knn_k=5&knn_percentile=95",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "anomalies"
+                  ],
+                  "query": [
+                    {
+                      "key": "country",
+                      "value": "Japan"
+                    },
+                    {
+                      "key": "period",
+                      "value": "1y"
+                    },
+                    {
+                      "key": "include_knn",
+                      "value": "true",
+                      "description": "Off by default -- not event-study validated like the other two detectors."
+                    },
+                    {
+                      "key": "knn_k",
+                      "value": "5"
+                    },
+                    {
+                      "key": "knn_percentile",
+                      "value": "95"
+                    }
+                  ]
+                },
+                "description": "Adds a third detector: distance to the knn_k-th nearest neighbor in the same (mean_weekly_return, volatility) space /analytics/clusters uses, flagged above knn_percentile. detection_method may now report knn_distance alone or combined (e.g. isolation_forest+knn_distance)."
+              },
+              "response": []
+            },
+            {
+              "name": "Similar companies — 9988.HK (features, country)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/similar/9988.HK?n=5&space=features&scope=country",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "similar",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "n",
+                      "value": "5"
+                    },
+                    {
+                      "key": "space",
+                      "value": "features"
+                    },
+                    {
+                      "key": "scope",
+                      "value": "country"
+                    }
+                  ]
+                },
+                "description": "Nearest companies by Euclidean distance on standardized (mean_weekly_return, volatility). scope=country (default) restricts to the ticker's own country; scope=global is also allowed for this space."
+              },
+              "response": []
+            },
+            {
+              "name": "Similar companies — 9988.HK (features, global)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/similar/9988.HK?n=5&space=features&scope=global",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "similar",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "n",
+                      "value": "5"
+                    },
+                    {
+                      "key": "space",
+                      "value": "features"
+                    },
+                    {
+                      "key": "scope",
+                      "value": "global"
+                    }
+                  ]
+                },
+                "description": "Same as above but across the full company universe, not just China."
+              },
+              "response": []
+            },
+            {
+              "name": "Similar companies — 9988.HK (correlation, country only)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{python_url}}/analytics/similar/9988.HK?n=5&space=correlation&scope=country",
+                  "host": [
+                    "{{python_url}}"
+                  ],
+                  "path": [
+                    "analytics",
+                    "similar",
+                    "9988.HK"
+                  ],
+                  "query": [
+                    {
+                      "key": "n",
+                      "value": "5"
+                    },
+                    {
+                      "key": "space",
+                      "value": "correlation"
+                    },
+                    {
+                      "key": "scope",
+                      "value": "country"
+                    }
+                  ]
+                },
+                "description": "d = sqrt(2*(1-rho)) on daily returns. scope=global is rejected (400) for this space -- cross-country correlation would conflate non-synchronous trading calendars with genuine decorrelation."
+              },
+              "response": []
             }
           ]
         },

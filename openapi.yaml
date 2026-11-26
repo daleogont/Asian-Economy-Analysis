@@ -3,15 +3,43 @@ openapi: 3.0.3
 info:
   title: Asian Capital Markets — Analytics API
   description: |
-    Python FastAPI analytics service for the Asian Capital Markets Intelligence Platform.
+    Python FastAPI analytics service for the Asian Capital Markets Intelligence Platform —
+    272 companies across 14 Asian economies (China, Hong Kong, India, Indonesia, Japan,
+    Malaysia, Pakistan, Saudi Arabia, Singapore, South Korea, Taiwan, Thailand, UAE, Vietnam)
+    and 11 market sectors.
 
-    Provides descriptive statistics, rolling moving averages, and ARIMA(1,1,1) price forecasting
-    for ~272 companies across 14 Asian countries and 11 market sectors.
+    Provides descriptive statistics, rolling moving averages, pairwise correlation,
+    anomaly detection, clustering, nearest-neighbor similarity, and price forecasting
+    across **8 interchangeable models plus a naive baseline** behind one endpoint
+    (`/analytics/models/forecast/{ticker}`): `arima`, `ets`, `sarima`, `prophet`, `ridge`,
+    `random_forest`, `xgboost`, `lstm`, and `naive` (the random-walk reference every other
+    model is scored against).
 
-    **Data source:** PostgreSQL (`daily_prices` table, 2 years of OHLCV history)
+    Every model reports the same **cost metrics** next to its forecast —
+    `inference_latency_ms`, `train_time_s`, `memory_mb` (and `rss_mb`) — plus holdout
+    `rmse`/`mae`, so accuracy and compute cost are comparable model-to-model.
+    `random_forest`/`xgboost`/`lstm` responses are cached in Redis for 24h; a response
+    carries an `X-Cache: HIT`/`MISS` header reporting whether it was served from that cache.
+
+    Rolling-origin cross-validation and multi-ticker x multi-model batch benchmarking
+    always run asynchronously via Celery: the triggering endpoint returns a `task_id`
+    immediately, polled through the generic `/tasks/status/{task_id}` endpoint (or the
+    progress-aware `/analytics/batch-benchmark/{task_id}/status` for that specific task).
+
+    **This document also covers the Node.js gateway** (`server/`, see the "Gateway" tag) —
+    a separate Express service that feeds the React client's market-overview/company/history
+    pages under `/api/*`. The two backends are independent processes. In Docker, Nginx proxies
+    `/api/*` to the Node gateway and `/analytics/*` to this service on port 3000, but endpoints
+    outside those two prefixes — `/health`, `/admin`, `/tasks/*`, `/internal/*`, and the
+    `/ws/tasks` WebSocket — are reachable only by calling this service directly on port 8000;
+    Nginx has no route for them.
+
+    **Data source:** PostgreSQL (`daily_prices` table), kept current by a nightly delta-fetch
+    job that appends new OHLCV rows and flushes the forecast cache
+    (`DELETE /internal/cache/invalidate`) whenever it adds data.
 
     **In Docker:** accessible at `http://localhost:8000` directly,
-    or via Nginx proxy at `http://localhost:3000/analytics/`
+    or via Nginx proxy at `http://localhost:3000/analytics/` (for `/analytics/*` routes only)
   version: "1.0.0"
   contact:
     name: Asian Economy Analysis
@@ -21,6 +49,12 @@ servers:
     description: Local Docker (python-api container)
   - url: http://localhost:3000/analytics
     description: Via Nginx proxy (production)
+
+security: []
+# No endpoint in this document (either backend) requires authentication — everything here
+# sits behind Docker's own network boundary / the Nginx proxy, with no auth layer in front of
+# either service. Declared explicitly (rather than left unset) so that is a documented fact,
+# not an omission.
 
 tags:
   - name: Health
@@ -45,10 +79,42 @@ tags:
     description: Rolling-origin cross-validation and multi-ticker/multi-model batch benchmarking (always async)
   - name: Internal
     description: Internal-only endpoints (no auth) — called by other services in this stack, not meant for external clients.
+  - name: Tasks
+    description: >-
+      Generic Celery task control — trigger a background job and poll its status or history.
+      Not specific to any one analytics feature; also the generic polling endpoint for tasks
+      queued elsewhere, e.g. `/analytics/validation/rolling/{ticker}`.
+  - name: Admin
+    description: Static operator dashboard. Excluded from this service's own auto-generated schema; documented here by hand.
+  - name: Gateway
+    description: >-
+      The Node.js/Express gateway (`server/`) — a separate service from everything else in
+      this document. Serves the React client's market-overview, company, and price-history
+      data under `/api/*`. Each path below carries its own `servers` entry since it is not
+      reachable from this service's own host/port.
+
+x-websocket-endpoints:
+  /ws/tasks:
+    description: >-
+      Plain WebSocket (not Socket.IO) broadcast channel. OpenAPI 3.0 has no way to describe
+      WebSocket endpoints in `paths`, so it is documented here as an extension instead. On
+      connect, the server subscribes the connection to the `task_events` Redis Pub/Sub channel
+      and forwards every message published on it, verbatim, as a text frame — it never reads
+      anything the client sends. Each forwarded message is the JSON object
+      `{task_id, operation, status, result, completed_at}` that `app/tasks.py` publishes when
+      any Celery task (`send_email_notification`, `run_market_analysis`,
+      `run_rolling_validation`, `run_batch_benchmark`) finishes — the same shape
+      `GET /tasks/history` rows have. Consumed by the `/admin` dashboard to show task
+      completions live, with no polling.
+    url: ws://localhost:8000/ws/tasks
+    note: Direct only — not proxied by Nginx (no `/ws/` location exists in `client/nginx.conf`).
 
 paths:
 
   /health:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
     get:
       tags: [Health]
       summary: Health check
@@ -855,7 +921,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TaskQueuedResponse"
+                $ref: "#/components/schemas/RollingValidationQueuedResponse"
               example:
                 task_id: 170e525a-8565-4425-acc4-cff549ca8e39
                 status: queued
@@ -904,7 +970,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TaskQueuedResponse"
+                $ref: "#/components/schemas/BatchBenchmarkQueuedResponse"
+              example:
+                task_id: 2f6a1c9e-5b3d-4e7a-8f12-3c4d5e6f7a8b
+                status: queued
+                queue: longrunning_queue
+                tickers: ["7203.T", "6758.T", "9984.T"]
+                models: [arima, naive, ets]
         "400":
           description: Unknown model, or neither tickers nor country/sector given
           content:
@@ -972,6 +1044,9 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /internal/fundamentals/{ticker}:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx. Called container-to-container at http://python-api:8000 by scripts/collectFundamentals.js.
     get:
       tags: [Internal]
       summary: Live fundamentals fetch via yfinance (internal only)
@@ -1006,6 +1081,9 @@ paths:
                 market_cap: 2419883769856
 
   /internal/cache/invalidate:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx. Called container-to-container at http://python-api:8000 by server/utils/deltaFetch.js.
     delete:
       tags: [Internal]
       summary: Flush all cached forecasts (internal only)
@@ -1027,6 +1105,462 @@ paths:
                     type: integer
                     description: Number of forecast:* keys removed
                     example: 2
+
+  /admin:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
+    get:
+      tags: [Admin]
+      summary: Static operator dashboard (HTML)
+      description: |
+        Serves `app/static/admin.html` — a static page for watching Celery task activity. It
+        calls the `/tasks/*` endpoints and subscribes to the `/ws/tasks` WebSocket from the
+        browser for live updates.
+
+        Registered with `include_in_schema=False` in FastAPI, so it never appears in this
+        service's own auto-generated OpenAPI/Swagger UI — documented here by hand instead.
+      responses:
+        "200":
+          description: The dashboard HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /tasks/email:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
+    post:
+      tags: [Tasks]
+      summary: Trigger an email notification task (simulated send)
+      description: |
+        Queues a Celery task on `email_queue` that logs a simulated "send" to each user — no
+        real email is sent. If `top_movers` is omitted, the task fetches the top 5 companies by
+        weekly return itself before "sending".
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailRequest"
+            example:
+              users: [admin@example.com, analyst@example.com]
+      responses:
+        "200":
+          description: Task queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskQueuedResponse"
+              example:
+                task_id: 170e525a-8565-4425-acc4-cff549ca8e39
+                status: queued
+                queue: email_queue
+
+  /tasks/analysis:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
+    post:
+      tags: [Tasks]
+      summary: Trigger a full market analysis task
+      description: |
+        Queues a Celery task on `longrunning_queue` that computes, per country, company count,
+        average close price, average weekly return, and best/worst weekly return across every
+        company with price data. Takes no parameters.
+      responses:
+        "200":
+          description: Task queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskQueuedResponse"
+              example:
+                task_id: 9b1e3c2a-1234-4a5b-9c8d-abcdef123456
+                status: queued
+                queue: longrunning_queue
+
+  /tasks/status/{task_id}:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
+    get:
+      tags: [Tasks]
+      summary: Generic Celery task status/result
+      description: |
+        Works for any task queued by this API — `/tasks/email`, `/tasks/analysis`,
+        `/analytics/validation/rolling/{ticker}`, or `/analytics/batch-benchmark`. `status` is
+        Celery's own state string (`PENDING`, `STARTED`, `SUCCESS`, `FAILURE`, ...). `result` is
+        populated only once the task is ready (`SUCCESS` or `FAILURE`); `null` while still
+        running.
+
+        For the batch-benchmark task specifically, prefer
+        `GET /analytics/batch-benchmark/{task_id}/status` while it's running — it reports
+        `{done, total}` progress, which this generic endpoint does not.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string, example: 170e525a-8565-4425-acc4-cff549ca8e39 }
+      responses:
+        "200":
+          description: Current status (and result, once ready)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+              example:
+                task_id: 170e525a-8565-4425-acc4-cff549ca8e39
+                status: SUCCESS
+                result:
+                  users_notified: 2
+                  top_movers_included: 5
+                  top_movers: []
+                  emails:
+                    - user: admin@example.com
+                      status: sent
+
+  /tasks/history:
+    servers:
+      - url: http://localhost:8000
+        description: Local Docker (python-api container) — direct only, not proxied by Nginx
+    get:
+      tags: [Tasks]
+      summary: Recently completed tasks
+      description: |
+        Returns up to `limit` most-recently-completed tasks from the `task_results` table —
+        any operation (`send_email_notification`, `run_market_analysis`,
+        `run_rolling_validation`, `run_batch_benchmark`), most recent first. `input_data` and
+        `result` are the JSON the task was called with / returned.
+
+        Returns `[]` (not an HTTP error) if the table doesn't exist yet or the query fails for
+        any other reason.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 50, minimum: 1, maximum: 500 }
+      responses:
+        "200":
+          description: Task history, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskHistoryItem"
+
+  /api/health:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Gateway health + in-memory price-cache status
+      description: |
+        Reports the composition of the Node gateway's in-memory price cache: how many entries
+        are bundled seed data vs. live-fetched, which upstream source (Yahoo Finance vs. Twelve
+        Data) supplied each live entry, and how many live entries are stale (not refreshed in
+        the last 12h).
+      responses:
+        "200":
+          description: Gateway is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayHealthResponse"
+              example:
+                status: ok
+                cache:
+                  total: 272
+                  live: 260
+                  seed: 12
+                  stale: 3
+                  bySource: { yahoo: 240, twelve: 20 }
+
+  /api/companies:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: All companies with latest price + weekly return
+      description: |
+        One row per company that currently has a valid latest close price — companies with no
+        price data are dropped from the response, not returned with null fields. `marketCap` is
+        always `null`: a placeholder field, not yet populated from any data source.
+      responses:
+        "200":
+          description: Company list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GatewayCompany"
+
+  /api/countries:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Per-country aggregates
+      description: |
+        One row per country among companies with a valid price, sorted by `companyCount`
+        descending. `sectors` is a count-by-sector map (sector name -> number of companies in
+        that country), not a market-cap or price breakdown.
+      responses:
+        "200":
+          description: Country aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GatewayCountry"
+              example:
+                - country: Japan
+                  companyCount: 22
+                  sectors: { Financials: 5, "Information Technology": 4 }
+                  averageWeeklyReturn: 0.42
+
+  /api/sectors:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Per-sector aggregates
+      description: One row per sector among companies with a valid price, sorted alphabetically by name.
+      responses:
+        "200":
+          description: Sector aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GatewaySector"
+
+  /api/sector-leaders:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Highest-price company in each sector
+      description: |
+        Despite the name, "leader" means the highest raw `stockPrice` in local currency within
+        the sector — **not** market cap. Prices are compared as-is across companies that trade
+        in different currencies, so this ranking is currency-naive. One entry per sector that
+        has at least one company with a valid price.
+      responses:
+        "200":
+          description: One leader company per sector
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GatewaySectorLeader"
+
+  /api/market-overview:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Platform-wide totals
+      description: Aggregates every company with a valid price into a per-country company count plus an overall average weekly return.
+      responses:
+        "200":
+          description: Platform-wide totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayMarketOverview"
+              example:
+                totalCompanies: 272
+                avgWeeklyReturn: 0.31
+                countries:
+                  Japan: { companies: 22 }
+                  China: { companies: 30 }
+
+  /api/top-movers:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Biggest weekly gainers or losers
+      description: |
+        Only companies with both a valid price **and** a non-null weekly return are eligible
+        (unlike `/api/companies`, which includes every priced company regardless of return).
+      parameters:
+        - name: count
+          in: query
+          required: false
+          description: Number of companies to return (capped at 20 server-side even if a larger value is passed)
+          schema: { type: integer, default: 5, maximum: 20, example: 5 }
+        - name: direction
+          in: query
+          required: false
+          description: Any value other than "down" is treated as "up".
+          schema: { type: string, default: up, enum: [up, down], example: up }
+      responses:
+        "200":
+          description: Top movers, sorted by weekly return (descending for up, ascending for down)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GatewayTopMover"
+
+  /api/macros:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: World Bank macro indicators for one country
+      description: |
+        Proxies three World Bank indicators — GDP (current US$, `NY.GDP.MKTP.CD`), total
+        population (`SP.POP.TOTL`), and unemployment rate (`SL.UEM.TOTL.ZS`) — fetched live from
+        `api.worldbank.org`, returning each indicator's most recent non-null value.
+
+        Only 10 of the platform's 14 countries are mapped to a World Bank country code: China,
+        India, Indonesia, Japan, Malaysia, Saudi Arabia, Singapore, South Korea, Taiwan,
+        Thailand. Hong Kong, Pakistan, UAE, and Vietnam are not mapped and return 400.
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: One of the 10 World-Bank-mapped countries listed above (exact name match).
+          schema: { type: string, example: Japan }
+      responses:
+        "200":
+          description: Macro indicators for the country
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayMacro"
+              example:
+                country: Japan
+                code: JP
+                gdp: 4204495000000
+                population: 123930000
+                unemployment: 2.5
+        "400":
+          description: Missing `country`, or `country` is not one of the 10 World-Bank-mapped names
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "500":
+          description: One or more World Bank API calls failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+
+  /api/history/{ticker}:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Raw OHLCV history for one ticker
+      description: |
+        Unprocessed daily OHLCV rows from `daily_prices` — no moving average, no forecasting
+        (see the Python service's `/analytics/rolling/{ticker}` and
+        `/analytics/models/forecast/{ticker}` for those). An unrecognized `period` value falls
+        back to 365 days of history, but the response still echoes back whatever string was
+        passed (or `"1y"` if the parameter was omitted entirely).
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema: { type: string, example: 9988.HK }
+        - name: period
+          in: query
+          required: false
+          description: 3m | 6m | 1y | 2y — note there is no 5y option here, unlike the Python service's period parameters.
+          schema: { type: string, default: 1y, enum: [3m, 6m, 1y, 2y], example: 1y }
+      responses:
+        "200":
+          description: OHLCV history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayHistoryResponse"
+        "404":
+          description: No price data for ticker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+
+  /api/fundamentals/{ticker}:
+    servers:
+      - url: http://localhost:4000
+        description: Local Docker (node-api container)
+      - url: http://localhost:3000/api
+        description: Via Nginx proxy (production)
+    get:
+      tags: [Gateway]
+      summary: Stored fundamentals for one ticker
+      description: |
+        Reads one row from the `fundamentals` table, populated out-of-band by
+        `scripts/collectFundamentals.js` — which itself calls the Python service's
+        `GET /internal/fundamentals/{ticker}` (a live yfinance fetch) and upserts the result
+        here. This endpoint never calls yfinance or the Python service directly; it only reads
+        what has already been collected, so a ticker with no prior collection run returns 404.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema: { type: string, example: 9988.HK }
+      responses:
+        "200":
+          description: Stored fundamentals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayFundamentals"
+        "404":
+          description: No fundamentals stored for ticker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "500":
+          description: Database query failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
 
 components:
   schemas:
@@ -1054,10 +1588,12 @@ components:
           type: integer
           example: 22
         price:
+          type: object
           allOf:
             - $ref: "#/components/schemas/StatBlock"
           nullable: true
         weeklyReturn:
+          type: object
           allOf:
             - $ref: "#/components/schemas/StatBlock"
           nullable: true
@@ -1481,6 +2017,31 @@ components:
         status: { type: string, example: queued }
         queue: { type: string, example: longrunning_queue }
 
+    RollingValidationQueuedResponse:
+      description: TaskQueuedResponse plus the resolved ticker/models — specific to POST /analytics/validation/rolling/{ticker}.
+      allOf:
+        - $ref: "#/components/schemas/TaskQueuedResponse"
+        - type: object
+          properties:
+            ticker: { type: string, example: 9988.HK }
+            models:
+              type: array
+              items: { type: string }
+              example: [arima, naive]
+
+    BatchBenchmarkQueuedResponse:
+      description: TaskQueuedResponse plus the resolved tickers/models — specific to POST /analytics/batch-benchmark.
+      allOf:
+        - $ref: "#/components/schemas/TaskQueuedResponse"
+        - type: object
+          properties:
+            tickers:
+              type: array
+              items: { type: string }
+            models:
+              type: array
+              items: { type: string }
+
     BatchBenchmarkRequest:
       type: object
       description: Provide `tickers`, or `country`/`sector` to resolve them server-side.
@@ -1552,8 +2113,10 @@ components:
         task_id: { type: string }
         status: { type: string, example: SUCCESS }
         result:
+          type: object
           nullable: true
-          $ref: "#/components/schemas/BatchBenchmarkResult"
+          allOf:
+            - $ref: "#/components/schemas/BatchBenchmarkResult"
 
     SimilarCompany:
       type: object
@@ -1579,3 +2142,197 @@ components:
           type: array
           items: { $ref: "#/components/schemas/SimilarCompany" }
         computation_time_ms: { type: number, example: 47.3 }
+
+    EmailRequest:
+      type: object
+      description: All fields optional — an empty body falls back to the three example users and a freshly-computed top-5-movers list.
+      properties:
+        users:
+          type: array
+          items: { type: string }
+          default: [admin@example.com, analyst@example.com, trader@example.com]
+        top_movers:
+          type: array
+          nullable: true
+          description: If omitted/null, the task computes the top 5 companies by weekly return itself.
+          items: { type: object }
+
+    TaskStatusResponse:
+      type: object
+      description: Generic shape returned by GET /tasks/status/{task_id}, for any task queued by this API.
+      properties:
+        task_id: { type: string, example: 170e525a-8565-4425-acc4-cff549ca8e39 }
+        status:
+          type: string
+          description: Celery's own state string.
+          enum: [PENDING, STARTED, PROGRESS, SUCCESS, FAILURE, RETRY, REVOKED]
+          example: SUCCESS
+        result:
+          type: object
+          nullable: true
+          description: The task's return value once status is SUCCESS or FAILURE; null while still running.
+
+    TaskHistoryItem:
+      type: object
+      properties:
+        task_id: { type: string, example: 170e525a-8565-4425-acc4-cff549ca8e39 }
+        operation:
+          type: string
+          enum: [send_email_notification, run_market_analysis, run_rolling_validation, run_batch_benchmark]
+          example: run_market_analysis
+        input_data:
+          type: object
+          description: The JSON arguments the task was called with.
+        result:
+          type: object
+          nullable: true
+          description: The task's return value.
+        status: { type: string, example: success }
+        completed_at: { type: string, format: date-time, nullable: true }
+
+    GatewayError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Failed to fetch company data
+
+    GatewayHealthResponse:
+      type: object
+      properties:
+        status: { type: string, example: ok }
+        cache:
+          type: object
+          properties:
+            total: { type: integer, example: 272 }
+            live: { type: integer, example: 260 }
+            seed: { type: integer, example: 12 }
+            stale:
+              type: integer
+              description: Live entries not refreshed in the last 12h.
+              example: 3
+            bySource:
+              type: object
+              properties:
+                yahoo:  { type: integer, example: 240 }
+                twelve: { type: integer, example: 20 }
+
+    GatewayCompany:
+      type: object
+      properties:
+        name:         { type: string, example: Alibaba Group Holding }
+        ticker:       { type: string, example: 9988.HK }
+        country:      { type: string, example: Hong Kong }
+        sector:       { type: string, example: Consumer Discretionary }
+        exchange:     { type: string, example: HKEX }
+        stockPrice:   { type: number, example: 82.35 }
+        weeklyReturn: { type: number, nullable: true, example: 1.42 }
+        currency:     { type: string, example: HKD }
+        marketCap:
+          type: integer
+          nullable: true
+          description: Always null — placeholder field, not yet populated.
+          example: null
+
+    GatewayCountry:
+      type: object
+      properties:
+        country: { type: string, example: Japan }
+        companyCount: { type: integer, example: 22 }
+        sectors:
+          type: object
+          description: Sector name -> number of companies in that country.
+          additionalProperties: { type: integer }
+        averageWeeklyReturn: { type: number, nullable: true, example: 0.42 }
+
+    GatewaySector:
+      type: object
+      properties:
+        name: { type: string, example: Financials }
+        companyCount: { type: integer, example: 31 }
+        averageWeeklyReturn: { type: number, nullable: true, example: 0.18 }
+
+    GatewaySectorLeader:
+      type: object
+      properties:
+        name:         { type: string, example: Tencent Holdings }
+        ticker:       { type: string, example: 0700.HK }
+        country:      { type: string, example: Hong Kong }
+        sector:       { type: string, example: Communication Services }
+        exchange:     { type: string, example: HKEX }
+        stockPrice:   { type: number, example: 312.6 }
+        weeklyReturn: { type: number, nullable: true, example: -0.8 }
+        currency:     { type: string, example: HKD }
+
+    GatewayMarketOverview:
+      type: object
+      properties:
+        totalCompanies: { type: integer, example: 272 }
+        avgWeeklyReturn: { type: number, nullable: true, example: 0.31 }
+        countries:
+          type: object
+          description: Country name -> { companies }.
+          additionalProperties:
+            type: object
+            properties:
+              companies: { type: integer }
+
+    GatewayTopMover:
+      type: object
+      properties:
+        name:         { type: string, example: SoftBank Group }
+        ticker:       { type: string, example: 9984.T }
+        country:      { type: string, example: Japan }
+        sector:       { type: string, example: Information Technology }
+        stockPrice:   { type: number, example: 7427.0 }
+        weeklyReturn: { type: number, example: 4.1 }
+        currency:     { type: string, example: JPY }
+
+    GatewayMacro:
+      type: object
+      properties:
+        country: { type: string, example: Japan }
+        code: { type: string, example: JP }
+        gdp: { type: number, nullable: true, example: 4204495000000 }
+        population: { type: number, nullable: true, example: 123930000 }
+        unemployment: { type: number, nullable: true, example: 2.5 }
+
+    GatewayOhlcvPoint:
+      type: object
+      description: >-
+        `date` serializes as a full ISO-8601 timestamp (the `pg` driver returns Postgres DATE
+        values as JS Date objects, at midnight UTC), not a bare YYYY-MM-DD string. open/high/
+        low/close (NUMERIC) and volume (BIGINT) serialize as JSON strings, not numbers — same
+        node-postgres behavior as GatewayFundamentals. Parse both client-side before use.
+      properties:
+        date:     { type: string, format: date-time, example: "2024-06-15T00:00:00.000Z" }
+        open:     { type: string, nullable: true, example: "71.900000" }
+        high:     { type: string, nullable: true, example: "73.200000" }
+        low:      { type: string, nullable: true, example: "71.500000" }
+        close:    { type: string, nullable: true, example: "72.450000" }
+        volume:   { type: string, nullable: true, example: "18234500" }
+        currency: { type: string, example: HKD }
+
+    GatewayHistoryResponse:
+      type: object
+      properties:
+        ticker: { type: string, example: 9988.HK }
+        period: { type: string, example: 1y }
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/GatewayOhlcvPoint" }
+
+    GatewayFundamentals:
+      type: object
+      description: >-
+        pe_ratio/eps/dividend_yield/beta are Postgres NUMERIC columns, and market_cap is
+        BIGINT — node-postgres serializes both as JSON strings (not numbers) by default, to
+        avoid precision loss. Parse them client-side before doing arithmetic.
+      properties:
+        ticker:         { type: string, example: 9988.HK }
+        pe_ratio:       { type: string, nullable: true, description: Numeric string., example: "19.71875" }
+        eps:            { type: string, nullable: true, description: Numeric string., example: "6.4" }
+        dividend_yield: { type: string, nullable: true, description: Numeric string., example: "0.83" }
+        beta:           { type: string, nullable: true, description: Numeric string., example: "0.51" }
+        market_cap:     { type: string, nullable: true, description: Numeric string (BIGINT)., example: "2419883769856" }
+        fetched_at:     { type: string, format: date-time, example: "2026-08-20T10:06:51.022Z" }

@@ -227,7 +227,8 @@
                       "description": "up | down"
                     }
                   ]
-                }
+                },
+                "description": "Biggest weekly losers. direction=down sorts ascending by weeklyReturn."
               },
               "response": []
             }
@@ -280,7 +281,8 @@
                       "value": "South Korea"
                     }
                   ]
-                }
+                },
+                "description": "World Bank macro indicators (GDP, population, unemployment) for South Korea."
               },
               "response": []
             },
@@ -303,7 +305,8 @@
                       "value": "China"
                     }
                   ]
-                }
+                },
+                "description": "World Bank macro indicators (GDP, population, unemployment) for China."
               },
               "response": []
             }
@@ -358,7 +361,8 @@
                       "value": "2y"
                     }
                   ]
-                }
+                },
+                "description": "Raw OHLCV history for Samsung Electronics, 2-year window (730 days)."
               },
               "response": []
             },
@@ -382,7 +386,8 @@
                       "value": "6m"
                     }
                   ]
-                }
+                },
+                "description": "Raw OHLCV history for Toyota, 6-month window (180 days)."
               },
               "response": []
             },
@@ -406,7 +411,51 @@
                       "value": "3m"
                     }
                   ]
-                }
+                },
+                "description": "Raw OHLCV history for Tencent, 3-month window (90 days) — the shortest supported period on the Node gateway."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Fundamentals",
+          "item": [
+            {
+              "name": "Fundamentals — Alibaba (9988.HK)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/fundamentals/9988.HK",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fundamentals",
+                    "9988.HK"
+                  ]
+                },
+                "description": "Reads stored fundamentals (pe_ratio, eps, dividend_yield, beta, market_cap, fetched_at) for one ticker from the `fundamentals` table. Populated out-of-band by scripts/collectFundamentals.js, which itself calls the Python service's internal yfinance endpoint — this endpoint never calls yfinance directly. Returns 404 if that ticker has never been collected."
+              },
+              "response": []
+            },
+            {
+              "name": "Fundamentals — unknown ticker (404)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{node_url}}/api/fundamentals/0000.ZZ",
+                  "host": [
+                    "{{node_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fundamentals",
+                    "0000.ZZ"
+                  ]
+                },
+                "description": "Demonstrates the 404 path — no fundamentals row exists for this made-up ticker."
               },
               "response": []
             }
@@ -487,7 +536,8 @@
                       "description": "Filter by sector name"
                     }
                   ]
-                }
+                },
+                "description": "Descriptive statistics (mean/median/std/min/max) for price and weekly return across every company in the Financials sector."
               },
               "response": []
             },
@@ -532,7 +582,8 @@
                       "value": "Information Technology"
                     }
                   ]
-                }
+                },
+                "description": "Descriptive statistics narrowed to both country and sector filters at once."
               },
               "response": []
             }
@@ -596,7 +647,8 @@
                       "value": "6m"
                     }
                   ]
-                }
+                },
+                "description": "Close price + 7-day rolling moving average for Samsung, 6-month history window."
               },
               "response": []
             },
@@ -624,7 +676,8 @@
                       "value": "2y"
                     }
                   ]
-                }
+                },
+                "description": "Close price + 30-day rolling moving average for Toyota, 2-year history window."
               },
               "response": []
             }
@@ -789,7 +842,8 @@
                       "value": "1y"
                     }
                   ]
-                }
+                },
+                "description": "ARIMA(1,1,1) forecast for Samsung, 14-day horizon."
               },
               "response": []
             },
@@ -817,7 +871,8 @@
                       "value": "2y"
                     }
                   ]
-                }
+                },
+                "description": "ARIMA(1,1,1) forecast for Toyota, 60-day horizon, 2-year training window."
               },
               "response": []
             },
@@ -845,7 +900,8 @@
                       "value": "6m"
                     }
                   ]
-                }
+                },
+                "description": "ARIMA(1,1,1) forecast for Tencent, minimum 7-day horizon, 6-month training window."
               },
               "response": []
             }
@@ -889,7 +945,23 @@
                 },
                 "description": "ARIMA forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (ETS)",
@@ -926,7 +998,23 @@
                 },
                 "description": "ETS forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (SARIMA)",
@@ -963,7 +1051,23 @@
                 },
                 "description": "SARIMA forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (Prophet)",
@@ -1000,7 +1104,23 @@
                 },
                 "description": "Prophet forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (Ridge)",
@@ -1037,7 +1157,23 @@
                 },
                 "description": "Ridge forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (Random Forest)",
@@ -1074,7 +1210,23 @@
                 },
                 "description": "Random Forest forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (XGBoost)",
@@ -1111,7 +1263,23 @@
                 },
                 "description": "XGBoost forecast with CE performance metrics (inference_latency_ms, train_time_s, memory_mb, rmse, mae)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Correlation — Japan",
@@ -1439,7 +1607,23 @@
                 },
                 "description": "Forecast — 9988.HK (LSTM) — Stage 3."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (LSTM, 5y — slow path)",
@@ -1476,7 +1660,23 @@
                 },
                 "description": "5-year LSTM forecast — exercises the slow/cold-cache path (can take 30-150s+ on a cold Redis cache; nginx's /analytics/ proxy timeout is 240s to cover this)."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (Ridge, Enriched)",
@@ -1518,7 +1718,23 @@
                 },
                 "description": "Forecast — 9988.HK (Ridge, Enriched) — Stage 3."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (Random Forest, Enriched)",
@@ -1560,7 +1776,23 @@
                 },
                 "description": "Forecast — 9988.HK (Random Forest, Enriched) — Stage 3."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forecast — 9988.HK (XGBoost, Enriched)",
@@ -1602,7 +1834,23 @@
                 },
                 "description": "Forecast — 9988.HK (XGBoost, Enriched) — Stage 3."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Internal — Fundamentals (9988.HK)",
@@ -1674,7 +1922,23 @@
                 },
                 "description": "Random-walk baseline: forecast = last observed close, repeated. Not cached. Used as the reference point for RMSE_model / RMSE_naive comparisons."
               },
-              "response": []
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const xCache = pm.response.headers.get(\"X-Cache\");",
+                      "console.log(\"X-Cache:\", xCache ?? \"(not set \\u2014 only present for random_forest/xgboost/lstm)\");"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },

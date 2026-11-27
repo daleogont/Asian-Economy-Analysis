@@ -13,3 +13,5 @@ __pycache__/
 research/.venv/
 research_for_paper.zip
 research/results/*.log
+research/data/*.csv
+research/results/forecast_paths.csv

@@ -295,8 +295,9 @@ summary.
 
 **What it covers:** 30 tickers across 12 markets, 744 rolling-origin folds
 (expanding window, 30-trading-day forecast horizon, non-overlapping step), 10
-model variants per fold — 7,440 fits in total — against a frozen price-data
-snapshot taken **2026-08-20**. Cost/timing numbers come from a separate,
+model variants per fold — 7,440 fits in total — against a frozen 30-ticker
+price-data snapshot: **35,761 rows, 2021-10-17 to 2026-08-20**
+(`research/data/manifest.json`). Cost/timing numbers come from a separate,
 CPU-only run inside the `python-api` Docker container, since the main run's
 own timing was recorded under host CPU contention.
 
@@ -335,8 +336,13 @@ for verification — see `research/README.md`'s "Data availability" section,
 including the caveat that a provider's revised prices will change that
 checksum even on a correct rebuild.
 
-**Database size:** the live database currently holds 346k+ daily price rows;
-the frozen snapshot used in the paper holds 329,825 rows.
+**Database size:** the paper's frozen snapshot (above) is a 30-ticker subset
+of the platform's full database, not a point-in-time copy of it — the two
+are separate figures and not directly comparable. The platform's own
+database (all 272 companies; see "Live coverage" above) is queried live, so
+its size only reflects a measurement at one point in time: as measured on
+2026-11-27, `daily_prices` held 346,827 rows (272 tickers, 2021-08-20 to
+2026-11-22).
 
 ---
 

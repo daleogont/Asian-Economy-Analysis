@@ -15,7 +15,9 @@ ML (clustering, anomaly detection, correlation networks), and async task infrast
 - Latest stock prices, weekly returns, country/sector aggregates, top movers, sector leaders
 - Macro indicators (GDP, population, unemployment) via the World Bank API, for 10 of the 14 countries
 - Price history charts with configurable rolling moving averages
-- Summary statistics (mean, median, std, min, max) per country and/or sector
+- Summary statistics (mean, median, std, min, max) per country and/or sector — price
+  statistics are only comparable when filtered to a single country, since prices are in
+  each company's local currency and are not converted to a common one
 - Weekly return distribution histograms
 
 **Forecasting**
@@ -105,12 +107,16 @@ different hosts/ports.
 git clone https://github.com/daleogont/Asian-Economy-Analysis.git
 cd Asian-Economy-Analysis
 cp .env.example .env          # add your TWELVE_DATA_KEY
+# docker-compose.yml's default DB credentials (admin/secret) are for local
+# development only — set your own POSTGRES_USER/POSTGRES_PASSWORD in .env
+# before any deployment
 
 # Start all services (postgres, redis, node-api, python-api, celery-worker, flower, client)
 docker compose up --build -d
 
 # Apply database schema
-docker compose exec postgres psql -U admin -d asianmarkets \
+# -T disables TTY allocation, required so `exec` can read the file from stdin
+docker compose exec -T postgres psql -U admin -d asianmarkets \
   -f /dev/stdin < data/schema.sql
 
 # Seed companies into DB
@@ -142,8 +148,8 @@ Open `http://localhost:3000`
 |---------------------|----------|--------------------------------------------------------------|
 | `TWELVE_DATA_KEY`   | No       | Twelve Data API key (fallback when Yahoo Finance fails)      |
 | `POSTGRES_DB`       | Yes      | Database name (default: `asianmarkets`)                      |
-| `POSTGRES_USER`     | Yes      | DB user (default: `admin`)                                   |
-| `POSTGRES_PASSWORD` | Yes      | DB password (default: `secret`)                               |
+| `POSTGRES_USER`     | Yes      | DB user (default: `admin` — local development only, change before any deployment) |
+| `POSTGRES_PASSWORD` | Yes      | DB password (default: `secret` — local development only, change before any deployment) |
 | `DATABASE_URL`      | Yes      | Full PostgreSQL connection string                              |
 | `REDIS_URL`         | Yes      | Redis connection string (default: `redis://redis:6379/0`)      |
 | `PORT`              | No       | Node.js server port (default: `4000`)                         |
@@ -164,7 +170,7 @@ gateway and the Python analytics service. The tables below are a quick-reference
 | GET    | `/api/companies`                         | All companies with a valid price, latest price + weekly return |
 | GET    | `/api/countries`                         | Per-country aggregates (company count, sector breakdown, avg return) |
 | GET    | `/api/sectors`                           | Per-sector aggregates                                       |
-| GET    | `/api/sector-leaders`                    | Highest-*price* company per sector (currency-naive, not market cap) |
+| GET    | `/api/sector-leaders`                    | Highest-*price* company per sector (raw currency values, not converted or market cap — a sector spanning multiple countries' exchanges compares nominal prices across different currencies, so this is not a meaningful cross-country ranking) |
 | GET    | `/api/market-overview`                   | Platform-wide totals                                        |
 | GET    | `/api/top-movers?count=5&direction=up`   | Top gainers or losers by weekly return                      |
 | GET    | `/api/macros?country=Japan`              | GDP, population, unemployment (World Bank; 10 of 14 countries) |
@@ -176,7 +182,7 @@ gateway and the Python analytics service. The tables below are a quick-reference
 | Method | Endpoint                                                  | Description                                            |
 |--------|-------------------------------------------------------------|------------------------------------------------------------|
 | GET    | `/health`                                                    | FastAPI health check                                      |
-| GET    | `/analytics/summary?country=&sector=`                        | Mean, median, std, min, max for price and weekly return   |
+| GET    | `/analytics/summary?country=&sector=`                        | Mean, median, std, min, max for price and weekly return (price stats are raw-currency — only comparable when filtered to one `country`; a `sector`-only or unfiltered call mixes currencies) |
 | GET    | `/analytics/rolling/:ticker?window=30&period=1y`              | Close prices + N-day rolling moving average               |
 | GET    | `/analytics/forecast/:ticker?days=30`                         | ARIMA(1,1,1)-only forecast (legacy, kept for compatibility)|
 | GET    | `/analytics/models/forecast/:ticker?model=&days=&enriched=`   | Any of the 9 models + cost metrics; `X-Cache` on cached ones |
@@ -267,7 +273,7 @@ npm run cypress:run    # headless
 | `navigation.cy.js` | 5 — Countries, Sections, Research, country page, section page |
 | `countryPage.cy.js` | 4 — card click, company table, row expand, tab switch |
 
-### Python tests — pytest, 55 test functions
+### Python tests — pytest, 56 test functions
 
 Run from `analytics/`:
 ```bash
@@ -277,6 +283,60 @@ pytest
 Covers the ML routers (correlation/anomalies/clusters/network/similar/kNN), the base forecast
 model's metrics contract, the naive baseline, rolling-origin validation, batch benchmarking, the
 correlation-distance method, and score-sensitivity analysis for the client-side comparison score.
+
+---
+
+## Benchmark
+
+The written paper's accuracy/cost claims come from a standalone rolling-origin
+cross-validation benchmark in `research/` — [PAPER LINK/DOI]. Full methodology,
+caveats, and investigation notes are in `research/README.md`; this section is a
+summary.
+
+**What it covers:** 30 tickers across 12 markets, 744 rolling-origin folds
+(expanding window, 30-trading-day forecast horizon, non-overlapping step), 10
+model variants per fold — 7,440 fits in total — against a frozen price-data
+snapshot taken **2026-08-20**. Cost/timing numbers come from a separate,
+CPU-only run inside the `python-api` Docker container, since the main run's
+own timing was recorded under host CPU contention.
+
+**Setup:** runs outside Docker, in a dedicated venv (`research/.venv`),
+connecting to Postgres over `localhost:5432` (`docker compose up -d` must be
+running). See `research/README.md` for exact pinned dependency versions.
+
+**Reproduction, in order:**
+```bash
+python3 -m venv research/.venv
+research/.venv/bin/pip install pandas==2.2.2 numpy==1.26.4 statsmodels==0.14.4 \
+    psycopg2-binary==2.9.9 sqlalchemy==2.0.35 psutil==6.0.0 scipy prophet==1.1.5
+rm -rf research/.venv/lib/python3.10/site-packages/prophet/stan_model/cmdstan-2.33.1
+
+research/.venv/bin/python research/host_info.py
+research/.venv/bin/python research/snapshot.py                # rebuilds the excluded snapshot CSV + manifest.json
+research/.venv/bin/python research/rolling_benchmark.py       # ~2h, resumable; regenerates forecast_paths.csv
+research/.venv/bin/python research/diagnostics.py              # reads forecast_paths.csv; ~9 min
+research/.venv/bin/python research/diagnostics_extra.py        # reads forecast_paths.csv; <1s
+research/.venv/bin/python research/summarize.py
+
+# Clean, CPU-only cost timing (~2h51m) — run inside python-api via `docker cp`,
+# not the host venv; see research/README.md's "Clean timing pass" for the exact sequence.
+```
+
+**Results:** `research/results/rolling_folds.csv`, `timing_clean.csv` /
+`timing_clean_summary.csv`, and the `diagnostics_*.csv` files. The
+`diagnostics_*.csv` results are already committed — re-running the steps
+above reproduces them, it isn't required to read them.
+
+**Raw price data is not in this repo:** `research/results/forecast_paths.csv`
+and `research/data/snapshot_2026-10-16.csv` are excluded because the price
+data provider's terms don't permit redistribution. `research/data/manifest.json`
+records the original snapshot's tickers, date range, row counts, and SHA-256
+for verification — see `research/README.md`'s "Data availability" section,
+including the caveat that a provider's revised prices will change that
+checksum even on a correct rebuild.
+
+**Database size:** the live database currently holds 346k+ daily price rows;
+the frozen snapshot used in the paper holds 329,825 rows.
 
 ---
 
@@ -332,7 +392,7 @@ forecasts      — ticker, forecast_date, predicted_close, lower_bound, upper_bo
 │   │       ├── validation.py / batch_benchmark.py   Async validation & benchmarking endpoints
 │   │       ├── internal.py      Internal-only fundamentals fetch + cache invalidation
 │   │       └── tasks.py         Task trigger + status + history endpoints
-│   ├── tests/                55 pytest test functions
+│   ├── tests/                56 pytest test functions
 │   └── scripts/              score_sensitivity.py and other analysis scripts
 ├── client/                   React frontend
 │   └── src/

@@ -3,8 +3,8 @@ Builds research/results/summary_by_model_tier.csv: mean/median/std of
 rmse_pct and MASE per model, cost means (train_time_s, inference_latency_ms,
 memory_mb), win counts (how often each model has the lowest rmse_pct among
 all 10 for a given ticker x origin), with the old one-year single-split
-paper numbers (benchmark_results.csv) joined in for side-by-side comparison
-on the 4 production-tier models.
+paper numbers (research/legacy/benchmark_results.csv) joined in for
+side-by-side comparison on the 4 production-tier models.
 
 Run AFTER rolling_benchmark.py has completed (or at any checkpoint, to
 inspect partial results -- it just summarizes whatever is in
@@ -18,10 +18,9 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-PROJECT_ROOT = os.path.dirname(HERE)
 RESULTS_DIR = os.path.join(HERE, "results")
 FOLDS_CSV = os.path.join(RESULTS_DIR, "rolling_folds.csv")
-OLD_BENCHMARK_CSV = os.path.join(PROJECT_ROOT, "benchmark_results.csv")
+OLD_BENCHMARK_CSV = os.path.join(HERE, "legacy", "benchmark_results.csv")
 OUT_CSV = os.path.join(RESULTS_DIR, "summary_by_model_tier.csv")
 
 TIER = {

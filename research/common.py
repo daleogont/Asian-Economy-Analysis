@@ -58,7 +58,7 @@ BASE_PER_COUNTRY = 2
 
 # The exact 30 tickers used by the existing one-year paper benchmark
 # (analytics/scripts/benchmark_paper.py), read back from its committed
-# output (benchmark_results.csv) rather than re-run live: re-running
+# output (research/legacy/benchmark_results.csv) rather than re-run live: re-running
 # select_tickers() against the *current* DB returns ZERO tickers at the
 # 365-day/240-row threshold, because daily_prices is ~2 months stale
 # relative to wall-clock "today" and the 365-day window no longer has

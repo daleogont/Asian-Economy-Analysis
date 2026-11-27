@@ -33,7 +33,7 @@ never touching `analytics/Dockerfile`.
 
 Same 30 tickers as the existing one-year paper benchmark
 (`analytics/scripts/benchmark_paper.py`), read back from its committed
-output `benchmark_results.csv` rather than re-running `select_tickers()`
+output `research/legacy/benchmark_results.csv` rather than re-running `select_tickers()`
 live — re-running it against the *current* DB returns **zero** tickers at
 the original 365-day/240-row threshold, because `daily_prices` was ~2
 months stale relative to wall-clock "today" at the time this benchmark was
@@ -541,8 +541,9 @@ All under `research/results/`:
   full 30-step forecast path vs. realized actual, so h=5/10/20/30 metrics
   can be sliced without re-running anything.
 - `summary_by_model_tier.csv` — mean/median/std of `rmse_pct`/`mase`, mean
-  costs, win counts/rates, old one-year numbers (`benchmark_results.csv`)
-  joined in for the 4 production models.
+  costs, win counts/rates, old one-year numbers
+  (`research/legacy/benchmark_results.csv`) joined in for the 4 production
+  models.
 - `timing_clean.csv` / `timing_clean_summary.csv` — the clean,
   container-based cost measurements (authoritative for the paper's cost
   claims); `timing_pass_run.log` is the raw run log copied back for the

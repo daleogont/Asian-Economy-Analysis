@@ -287,7 +287,7 @@ correlation-distance method, and score-sensitivity analysis for the client-side 
 | `openapi.yaml` | OpenAPI 3.0 spec covering both the Python analytics API and the Node.js gateway |
 | `postman_collection.json` | Postman collection (v2.1.0 schema) — every endpoint above, with descriptions, example parameters, and a test script on the model-forecast requests |
 | `research/` | Standalone rolling-origin benchmark for the written paper — runs outside Docker against the production model classes, read-only (see `research/README.md`) |
-| `benchmark_results.csv` | Committed 30-ticker × 4-model one-year benchmark output |
+| `research/legacy/benchmark_results.csv` | Early 80/20 holdout 30-ticker × 4-model benchmark output, superseded by the rolling-origin benchmark in `research/results/` |
 | `README_LAB1_WebAppDevelopmentTechnology.md` | Lab 1 report — backend architecture, Docker, data pipeline |
 | `README_LAB2_WebInterfaceProgramming.md` | Lab 2 report — React frontend, component structure |
 | `README_LAB3_WebInterfaceTesting.md` | Lab 3 report — Jest unit tests + Cypress E2E tests |

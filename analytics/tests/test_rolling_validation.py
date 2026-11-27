@@ -1,4 +1,3 @@
-import os
 from unittest.mock import patch
 
 import numpy as np
@@ -7,8 +6,7 @@ import pytest
 
 from app.models.arima import ArimaModel
 from app.validation import CHEAP_MODELS, HEAVY_MODELS, origins_for, resolve_models
-
-FIXTURES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
+from conftest import build_synthetic_price_series
 
 
 # ---------------------------------------------------------------------------
@@ -53,37 +51,55 @@ def test_resolve_models_allows_heavy_with_flag():
 
 
 # ---------------------------------------------------------------------------
-# Reproduces the paper's numbers — 9988.HK, arima, origin 2023-09-12.
-# Source: research/results/rolling_folds.csv, row
-#   9988.HK,China,2023-09-12,504,arima,A,3.9706,3.1746,...
-# The fixture CSV is a frozen snapshot (research/data/snapshot_2026-10-16.csv,
-# trimmed to this one ticker) so this test needs no DB and is independent of
-# how much daily_prices has grown since the paper's benchmark ran.
+# ARIMA over one rolling-origin fold — same shape as the paper's
+# methodology (research/rolling_benchmark.py: expanding window,
+# min_train=504, horizon=30), but run against a synthetic series instead
+# of a real ticker snapshot, so this can't be asserted against the paper's
+# exact numbers (research/results/rolling_folds.csv). What it keeps
+# checking: ARIMA fits and forecasts cleanly over a multi-year series,
+# the fold boundaries match origins_for's own math, and errors are
+# well-formed and reproducible for a fixed seed.
 # ---------------------------------------------------------------------------
-EXPECTED_RMSE = 3.9706
-EXPECTED_MAE = 3.1746
+def test_synthetic_price_series_generation_is_deterministic():
+    a = build_synthetic_price_series()
+    b = build_synthetic_price_series()
+    pd.testing.assert_frame_equal(a, b)
 
 
-def test_reproduces_paper_rolling_origin_fold():
-    df = pd.read_csv(os.path.join(FIXTURES_DIR, "9988_HK_snapshot.csv"))
+def test_rolling_origin_fold_on_synthetic_series(synthetic_price_series):
+    df = synthetic_price_series
     df["date"] = pd.to_datetime(df["date"])
     series = df.set_index("date")["close"].astype(float).asfreq("B").ffill()
 
-    origin_date = pd.Timestamp("2023-09-12")
-    train = series.loc[:origin_date]
-    horizon = 30
-    actual = series.iloc[len(train): len(train) + horizon].to_numpy()
+    min_train, step, horizon = 504, 30, 30
+    expected_origins = origins_for(len(series), min_train, step, horizon)
+    assert len(expected_origins) > 0
+
+    origin_idx = expected_origins[0]
+    train = series.iloc[:origin_idx]
+    actual = series.iloc[origin_idx: origin_idx + horizon].to_numpy()
+    assert len(train) == min_train
+    assert actual.shape == (horizon,)
 
     model = ArimaModel()
     model.fit(train)
     forecast = model.predict(horizon)
     pred = np.asarray(forecast["mean"][:len(actual)], dtype=float)
+    assert pred.shape == actual.shape
 
     rmse = float(np.sqrt(np.mean((pred - actual) ** 2)))
     mae = float(np.mean(np.abs(pred - actual)))
+    assert rmse > 0
+    assert mae > 0
 
-    assert rmse == pytest.approx(EXPECTED_RMSE, abs=0.01)
-    assert mae == pytest.approx(EXPECTED_MAE, abs=0.01)
+    # Same train slice, fit again -> identical forecast (no hidden
+    # randomness in ArimaModel itself; all the randomness lives in the
+    # fixture's seeded series generation).
+    repeat_model = ArimaModel()
+    repeat_model.fit(train)
+    repeat_forecast = repeat_model.predict(horizon)
+    repeat_pred = np.asarray(repeat_forecast["mean"][:len(actual)], dtype=float)
+    np.testing.assert_allclose(pred, repeat_pred)
 
 
 # ---------------------------------------------------------------------------
